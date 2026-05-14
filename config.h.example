@@ -1,0 +1,12 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Wi-Fi
+char ssid[] = "SSID";  // Wi-Fi SSID
+char password[]= "PASSWORD"; // Wi-Fi Password
+
+// micro-ROS agent
+char agent_ip_address[] = "IP_ADDRESS"; // PC IP ADDRESS
+const size_t agent_port = 8888;
+
+#endif
