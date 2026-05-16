@@ -50,7 +50,10 @@ View the camera image topic.
 ros2 run rqt_image_view rqt_image_view
 ```
 
-If `rqt_image_view` doesn't work properly on Wayland, please switch to Xorg.
+> **Note:**
+> If `rqt_image_view` doesn't work properly on Wayland, please switch to Xorg.
+
+<img width="370" height="340" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
