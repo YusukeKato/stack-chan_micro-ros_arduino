@@ -13,14 +13,29 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 
-const unsigned int num_handles = 2; 
+// motor: pub, sub
+// camera: pub
+const unsigned int num_handles = 3;
+
+extern bool init_camera_hardware();
+extern void setup_motor_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
+extern void setup_camera_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
 void setup() {
+  // serial setup
+  Serial.begin(115200);
+  delay(2000);
+  Serial.println("\n--- StackChan Booting ---");
+
   // init stack-chan
   M5StackChan.begin();
   M5StackChan.Display().setTextSize(3);
   M5StackChan.Motion.goHome();
   delay(1000);
+
+  if (!init_camera_hardware()) {
+    Serial.println("[ERROR] Failed to initialize camera hardware!");
+  }
 
   M5StackChan.Display().printf("> Connecting Wi-Fi...\n");
   set_microros_wifi_transports(ssid, password, agent_ip_address, agent_port);
@@ -42,9 +57,16 @@ void setup() {
 
   // init node
   setup_motor_node(&node, &support, &executor);
+  setup_camera_node(&node, &support, &executor);
+
+  Serial.println("[DEBUG] Setup completely finished! Entering loop().");
 }
 
 void loop() {
   M5StackChan.update();
-  rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+  rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+  if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+    Serial.printf("[ERROR] Executor spin failed! Error code: %d\n", ret);
+    delay(100);
+  }
 }
