@@ -31,11 +31,15 @@ Control the motor by specifying the angle.
 ros2 topic pub --once /stackchan/joint_commands std_msgs/msg/Int32MultiArray "{data: [200, 500]}"
 ```
 
+<img width="320" height="240" alt="control stack-chan motor" src="https://github.com/user-attachments/assets/99937d38-68b9-4965-a578-3f4c2f4793d5" />
+
 Get the current motor angle.
 
 ```sh
 ros2 topic echo /stackchan/joint_states
 ```
+
+<img width="340" height="192" alt="get stack-chan motor angle" src="https://github.com/user-attachments/assets/8355e25b-2884-4712-9fd0-0706c9e662dc" />
 
 ### Camera
 Check the publish rate of the camera image topic.
@@ -53,7 +57,7 @@ ros2 run rqt_image_view rqt_image_view
 > **Note:**
 > If `rqt_image_view` doesn't work properly on Wayland, please switch to Xorg.
 
-<img width="370" height="340" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
+<img width="333" height="306" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
