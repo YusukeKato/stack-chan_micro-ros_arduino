@@ -59,6 +59,36 @@ ros2 run rqt_image_view rqt_image_view
 
 <img width="333" height="306" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
+## Battery
+Check the battery voltage, remaining level (%), and charging status.
+
+```sh
+ros2 topic echo /stackchan/battery_state
+```
+
+```sh
+header:
+  stamp:
+    sec: 1778980809
+    nanosec: 0
+  frame_id: base_link
+voltage: 4.205999851226807
+temperature: 0.0
+current: 0.0
+charge: 0.0
+capacity: 0.0
+design_capacity: 0.0
+percentage: 0.9300000071525574
+power_supply_status: 1
+power_supply_health: 0
+power_supply_technology: 0
+present: false
+cell_voltage: []
+cell_temperature: []
+location: ''
+serial_number: ''
+```
+
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
 - StackChan may repeatedly reboot if the micro-ROS agent is not running.
