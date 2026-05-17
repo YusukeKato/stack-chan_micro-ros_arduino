@@ -18,8 +18,8 @@ rcl_node_t node;
 const unsigned int num_handles = 3;
 
 extern bool init_camera_hardware();
-extern void setup_motor_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_camera_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
+extern void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
+extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
 void setup() {
   // serial setup
@@ -56,8 +56,8 @@ void setup() {
   rclc_executor_init(&executor, &support.context, num_handles, &allocator);
 
   // init node
-  setup_motor_node(&node, &support, &executor);
-  setup_camera_node(&node, &support, &executor);
+  setup_motor(&node, &support, &executor);
+  setup_camera(&node, &support, &executor);
 
   Serial.println("[DEBUG] Setup completely finished! Entering loop().");
 }

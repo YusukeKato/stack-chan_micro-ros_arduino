@@ -93,7 +93,7 @@ void camera_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   }
 }
 
-void setup_camera_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
+void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
   Serial.println("[DEBUG] Registering Camera Node...");
   // init publisher
   rclc_publisher_init_default(

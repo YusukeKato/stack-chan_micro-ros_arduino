@@ -52,7 +52,7 @@ void motor_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
   }
 }
 
-void setup_motor_node(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
+void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
   Serial.println("[DEBUG] Registering Motor Node...");
   // publisher
   rclc_publisher_init_default(
