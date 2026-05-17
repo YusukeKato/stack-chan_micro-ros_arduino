@@ -1,4 +1,6 @@
 # stack-chan_micro-ros_arduino
+StackChan + micro-ROS + Arduino
+
 <img width="320" height="240" alt="stack-chan_micro-ros_arduino_servo-motor" src="https://github.com/user-attachments/assets/99937d38-68b9-4965-a578-3f4c2f4793d5" />
 
 ## Target StackChan
@@ -34,6 +36,11 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 ```
 
 5. Press the reset button on your StackChan to restart it.
+
+### Default
+Displays the `m5avatar::Expression::Happy` face.
+
+<img width="300" height="165" alt="" src="https://github.com/user-attachments/assets/697a91a9-bb25-46b0-b16a-41f10b77d176" />
 
 ### Motor
 Control the motor by specifying the angle.
