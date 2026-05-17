@@ -2,12 +2,15 @@
 // https://docs.m5stack.com/ja/arduino/stackchan/battery
 
 #include <Arduino.h>
+#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <sensor_msgs/msg/battery_state.h>
+
+extern m5avatar::Avatar avatar;
 
 rcl_publisher_t battery_pub;
 sensor_msgs__msg__BatteryState battery_msg;
@@ -42,14 +45,18 @@ void battery_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
     // publish
     rcl_publish(&battery_pub, &battery_msg, NULL);
     // debug
+    static char speech_buf[64];
+    snprintf(speech_buf, sizeof(speech_buf), "Battery : %d%%", level);
+    avatar.setSpeechText(speech_buf);
+    /*
     M5StackChan.Display().setCursor(0, 140);
     M5StackChan.Display().setTextColor(TFT_WHITE, TFT_BLACK); 
     M5StackChan.Display().printf("  Volt  : %4.2f V \n", battery_msg.voltage);
-    // M5StackChan.Display().printf("  Curr  : %4d mA\n", cur_ma);
     M5StackChan.Display().printf("  Level : %4d %% \n", level);
     M5StackChan.Display().printf("  Status: %s    \n", 
       (charge_state == m5::Power_Class::is_charging) ? "Charging " : 
       (charge_state == m5::Power_Class::is_discharging) ? "Discharge" : "Unknown  ");
+    */
   }
 }
 

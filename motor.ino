@@ -45,10 +45,12 @@ void motor_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
     */
     
     // print log
+    /*
     M5StackChan.Display().setCursor(0, 80);
     M5StackChan.Display().setTextColor(TFT_WHITE, TFT_BLACK); 
     M5StackChan.Display().printf("  Yaw   : %4d    \n", current_yaw);
     M5StackChan.Display().printf("  Pitch : %4d    \n", current_pitch);
+    */
   }
 }
 

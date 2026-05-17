@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
@@ -12,6 +13,8 @@ rclc_executor_t executor;
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
+
+m5avatar::Avatar avatar;
 
 // motor: pub(timer), sub
 // camera: pub(timer)
@@ -61,6 +64,10 @@ void setup() {
   setup_motor(&node, &support, &executor);
   setup_camera(&node, &support, &executor);
   setup_battery(&node, &support, &executor);
+
+  // init avatar
+  avatar.init();
+  avatar.setExpression(m5avatar::Expression::Happy);
 
   Serial.println("[DEBUG] Setup completely finished! Entering loop().");
 }

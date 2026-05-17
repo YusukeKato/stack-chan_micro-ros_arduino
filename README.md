@@ -9,8 +9,9 @@
 - ROS 2 Jazzy
 - Docker 29.5.0
 - Arduino IDE 2.3.8
-  - micro_ros_arduino 2.0.7-humble
+  - micro_ros_arduino 2.0.7-humble, 3.0.0-iron
   - M5StackChan 1.0.1
+  - M5Stack_Avatar 0.10.0
 
 ## Setup
 - [ROS 2 Jazzy Installation](https://docs.ros.org/en/jazzy/Installation.html)
