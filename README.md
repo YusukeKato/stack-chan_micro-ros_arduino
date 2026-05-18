@@ -123,4 +123,8 @@ serial_number: ''
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
-- StackChan may repeatedly reboot if the micro-ROS agent is not running.
+
+## Format
+```sh
+clang-format -i -style=file *.ino *.h
+```

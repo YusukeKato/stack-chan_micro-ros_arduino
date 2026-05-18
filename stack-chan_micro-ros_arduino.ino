@@ -2,10 +2,10 @@
 #include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
-#include <rcl/rcl.h>
 #include <rcl/error_handling.h>
-#include <rclc/rclc.h>
+#include <rcl/rcl.h>
 #include <rclc/executor.h>
+#include <rclc/rclc.h>
 
 #include "config.h"
 
@@ -64,9 +64,9 @@ void setup() {
   rclc_node_init_default(&node, "stackchan_node", "", &support);
 
   // count num_handles
-  if (ENABLE_MOTOR) num_handles += 2; // pub(timer), sub
-  if (ENABLE_CAMERA) num_handles += 1; // pub(timer)
-  if (ENABLE_BATTERY) num_handles += 1; // pub(timer)
+  if (ENABLE_MOTOR) num_handles += 2;    // pub(timer), sub
+  if (ENABLE_CAMERA) num_handles += 1;   // pub(timer)
+  if (ENABLE_BATTERY) num_handles += 1;  // pub(timer)
 
   if (num_handles > 0) {
     rclc_executor_init(&executor, &support.context, num_handles, &allocator);
