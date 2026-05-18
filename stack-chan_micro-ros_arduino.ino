@@ -21,6 +21,8 @@ m5avatar::Avatar avatar;
 // battery: pub(timer)
 const unsigned int num_handles = 4;
 
+static char speech_buf[64];
+
 extern bool init_camera_hardware();
 extern void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
@@ -38,19 +40,29 @@ void setup() {
   M5StackChan.Motion.goHome();
   delay(1000);
 
+  // init avatar
+  avatar.init();
+  avatar.setExpression(m5avatar::Expression::Happy);
+
   if (!init_camera_hardware()) {
     Serial.println("[ERROR] Failed to initialize camera hardware!");
   }
 
-  M5StackChan.Display().printf("> Connecting Wi-Fi...\n");
+  snprintf(speech_buf, sizeof(speech_buf), "Connecting Wi-Fi...");
+  avatar.setSpeechText(speech_buf);
   set_microros_wifi_transports(ssid, password, agent_ip_address, agent_port);
   delay(2000);
 
-  M5StackChan.Display().clear();
-  M5StackChan.Display().setCursor(0, 0);
-  M5StackChan.Display().setTextColor(TFT_GREENYELLOW);
-  M5StackChan.Display().printf("> ROS 2 Ready!\n");
-  M5StackChan.Display().setTextColor(TFT_WHITE);
+  snprintf(speech_buf, sizeof(speech_buf), "Wait micro-ROS Agent...");
+  avatar.setSpeechText(speech_buf);
+  Serial.println("[INFO] Waiting for micro-ROS Agent...");
+  while (rmw_uros_ping_agent(100, 1) != RMW_RET_OK) {
+    M5StackChan.update();
+    delay(100);
+  }
+
+  snprintf(speech_buf, sizeof(speech_buf), "ROS 2 Ready!");
+  avatar.setSpeechText(speech_buf);
 
   // init micro-ROS core
   allocator = rcl_get_default_allocator();
@@ -64,10 +76,6 @@ void setup() {
   setup_motor(&node, &support, &executor);
   setup_camera(&node, &support, &executor);
   setup_battery(&node, &support, &executor);
-
-  // init avatar
-  avatar.init();
-  avatar.setExpression(m5avatar::Expression::Happy);
 
   Serial.println("[DEBUG] Setup completely finished! Entering loop().");
 }
