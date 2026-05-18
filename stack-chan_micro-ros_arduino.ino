@@ -16,10 +16,7 @@ rcl_node_t node;
 
 m5avatar::Avatar avatar;
 
-// motor: pub(timer), sub
-// camera: pub(timer)
-// battery: pub(timer)
-const unsigned int num_handles = 4;
+unsigned int num_handles = 0;
 
 static char speech_buf[64];
 
@@ -44,7 +41,7 @@ void setup() {
   avatar.init();
   avatar.setExpression(m5avatar::Expression::Happy);
 
-  if (!init_camera_hardware()) {
+  if (ENABLE_CAMERA && !init_camera_hardware()) {
     Serial.println("[ERROR] Failed to initialize camera hardware!");
   }
 
@@ -61,30 +58,38 @@ void setup() {
     delay(100);
   }
 
-  snprintf(speech_buf, sizeof(speech_buf), "ROS 2 Ready!");
-  avatar.setSpeechText(speech_buf);
-
   // init micro-ROS core
   allocator = rcl_get_default_allocator();
   rclc_support_init(&support, 0, NULL, &allocator);
   rclc_node_init_default(&node, "stackchan_node", "", &support);
 
-  // set micro-ROS executor
-  rclc_executor_init(&executor, &support.context, num_handles, &allocator);
+  // count num_handles
+  if (ENABLE_MOTOR) num_handles += 2; // pub(timer), sub
+  if (ENABLE_CAMERA) num_handles += 1; // pub(timer)
+  if (ENABLE_BATTERY) num_handles += 1; // pub(timer)
 
-  // init node
-  setup_motor(&node, &support, &executor);
-  setup_camera(&node, &support, &executor);
-  setup_battery(&node, &support, &executor);
+  if (num_handles > 0) {
+    rclc_executor_init(&executor, &support.context, num_handles, &allocator);
+    if (ENABLE_MOTOR) setup_motor(&node, &support, &executor);
+    if (ENABLE_CAMERA) setup_camera(&node, &support, &executor);
+    if (ENABLE_BATTERY) setup_battery(&node, &support, &executor);
+  } else {
+    Serial.println("[WARN] All topics are disabled in config.h");
+  }
+
+  snprintf(speech_buf, sizeof(speech_buf), "ROS 2 Ready!");
+  avatar.setSpeechText(speech_buf);
 
   Serial.println("[DEBUG] Setup completely finished! Entering loop().");
 }
 
 void loop() {
   M5StackChan.update();
-  rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
-  if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
-    Serial.printf("[ERROR] Executor spin failed! Error code: %d\n", ret);
-    delay(100);
+  if (num_handles > 0) {
+    rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+    if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+      Serial.printf("[ERROR] Executor spin failed! Error code: %d\n", ret);
+      delay(100);
+    }
   }
 }
