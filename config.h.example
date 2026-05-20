@@ -13,5 +13,6 @@ const size_t agent_port = 8888;
 const bool ENABLE_MOTOR = true;
 const bool ENABLE_CAMERA = true;
 const bool ENABLE_BATTERY = true;
+const bool ENABLE_SPEECH = true;
 
 #endif
