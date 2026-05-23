@@ -25,6 +25,7 @@ extern void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor
 extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_speech(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
+extern void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
 void setup() {
   // serial setup
@@ -41,7 +42,7 @@ void setup() {
 
   // init avatar
   avatar.init();
-  avatar.setExpression(m5avatar::Expression::Happy);
+  avatar.setExpression(m5avatar::Expression::Neutral);
 
   if (ENABLE_CAMERA && !init_camera_hardware()) {
     Serial.println("[ERROR] Failed to initialize camera hardware!");
@@ -70,6 +71,7 @@ void setup() {
   if (ENABLE_CAMERA) num_handles += 1;   // pub(timer)
   if (ENABLE_BATTERY) num_handles += 1;  // pub(timer)
   if (ENABLE_SPEECH) num_handles += 1;   // sub
+  if (ENABLE_TOUCH) num_handles += 1;    // pub(timer)
 
   if (num_handles > 0) {
     rclc_executor_init(&executor, &support.context, num_handles, &allocator);
@@ -77,6 +79,7 @@ void setup() {
     if (ENABLE_CAMERA) setup_camera(&node, &support, &executor);
     if (ENABLE_BATTERY) setup_battery(&node, &support, &executor);
     if (ENABLE_SPEECH) setup_speech(&node, &support, &executor);
+    if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
   } else {
     Serial.println("[WARN] All topics are disabled in config.h");
   }

@@ -39,7 +39,7 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 5. Press the reset button on your StackChan to restart it.
 
 ### Default
-Displays the `m5avatar::Expression::Happy` face.
+Displays the `m5avatar::Expression:::Neutral` face.
 
 <img width="300" height="165" alt="" src="https://github.com/user-attachments/assets/697a91a9-bb25-46b0-b16a-41f10b77d176" />
 
@@ -91,7 +91,7 @@ ros2 run rqt_image_view rqt_image_view
 
 <img width="333" height="306" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
-## Battery
+### Battery
 Check the battery voltage, remaining level (%), and charging status.
 
 ```sh
@@ -122,7 +122,7 @@ location: ''
 serial_number: ''
 ```
 
-## Speech
+### Speech
 Send text, and StackChan will speak.
 
 ```sh
@@ -134,6 +134,26 @@ YouTube↓
 <a href="https://www.youtube.com/watch?v=DK_6BcMXUpY">
   <img src="https://img.youtube.com/vi/DK_6BcMXUpY/maxresdefault.jpg" alt="StackChan+micro-ROS+Arduino: Text To Speech" width="320">
 </a>
+
+### Touch
+Get touch sensor values.
+
+```sh
+ros2 topic echo /stackchan/touch_intensities
+```
+
+```sh
+# output:
+---
+layout:
+  dim: []
+  data_offset: 0
+data:
+- 3  # Front
+- 0  # Middle
+- 1  # Back
+---
+```
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
