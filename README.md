@@ -11,7 +11,7 @@ StackChan + micro-ROS + Arduino
 - ROS 2 Jazzy
 - Docker 29.5.0
 - Arduino IDE 2.3.8
-  - micro_ros_arduino 2.0.7-humble, 3.0.0-iron
+  - micro_ros_arduino 2.0.7-humble or 3.0.0-iron
   - M5StackChan 1.0.1
   - M5Stack_Avatar 0.10.0
 
@@ -30,7 +30,7 @@ git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 
 4. Copy `config.h.example` to `config.h` and edit it to match your environment.
 5. Upload the program to your StackChan.
-6. Start micro-ROS agent.
+6. Start micro-ROS Agent.
 
 ```sh
 docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -v6
@@ -41,7 +41,7 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 ### Default
 Displays the `m5avatar::Expression:::Neutral` face.
 
-<img width="300" height="165" alt="" src="https://github.com/user-attachments/assets/697a91a9-bb25-46b0-b16a-41f10b77d176" />
+<img width="335" height="302" alt="Neutral Face" src="https://github.com/user-attachments/assets/8ea40554-4dda-495b-bb25-85bc8142fb87" />
 
 ### Motor
 Control the motor by specifying the angle.
@@ -154,6 +154,8 @@ data:
 - 1  # Back
 ---
 ```
+
+<img width="341" height="192" alt="stack-chan_micro-ros_arduino_touch" src="https://github.com/user-attachments/assets/5ee1efc9-c074-4b66-aa36-51406f1d2235" />
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
