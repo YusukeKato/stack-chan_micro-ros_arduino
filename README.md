@@ -10,8 +10,8 @@ StackChan + micro-ROS + Arduino
 - Ubuntu 24.04 LTS
 - ROS 2 Jazzy
 - Docker 29.5.0
-- Arduino IDE 2.3.8
-  - micro_ros_arduino 2.0.7-humble or 3.0.0-iron
+- Arduino IDE 2.3.8 - 2.3.9
+  - micro_ros_arduino 2.0.7-humble - 3.0.0-iron
   - M5StackChan 1.0.1
   - M5Stack_Avatar 0.10.0
 
@@ -195,6 +195,8 @@ linear_acceleration:
 linear_acceleration_covariance:
 ...
 ```
+
+<img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
