@@ -74,7 +74,7 @@ data:
 <img width="340" height="192" alt="get stack-chan motor angle" src="https://github.com/user-attachments/assets/8355e25b-2884-4712-9fd0-0706c9e662dc" />
 
 ### Camera
-Check the publish rate of the camera image topic.
+Get the publish rate of the camera image topic.
 
 ```sh
 ros2 topic hz /stackchan/camera/image/compressed
@@ -92,7 +92,7 @@ ros2 run rqt_image_view rqt_image_view
 <img width="333" height="306" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
 ### Battery
-Check the battery voltage, remaining level (%), and charging status.
+Get the battery voltage, remaining level (%), and charging status.
 
 ```sh
 ros2 topic echo /stackchan/battery_state
@@ -156,6 +156,45 @@ data:
 ```
 
 <img width="341" height="192" alt="stack-chan_micro-ros_arduino_touch" src="https://github.com/user-attachments/assets/5ee1efc9-c074-4b66-aa36-51406f1d2235" />
+
+### IMU
+Get the IMU data.
+
+> **Note1:**
+>  M5StackChan(X-right, Y-down, Z-backward)
+>  -> ROS 2(X-forward, Y-left, X-up)
+
+> **Note2:**
+> Same axis mapping for linear and angular, but different sign inversions.
+
+```sh
+ros2 topic echo /stackchan/imu
+```
+
+```sh
+# output
+header:
+  stamp:
+    sec: 1780211663
+    nanosec: 838000000
+  frame_id: imu_link
+orientation:
+...
+orientation_covariance:
+...
+angular_velocity:
+  x: 0.059654808417774936
+  y: 0.08096009713840883
+  z: -0.0010652644360316954
+angular_velocity_covariance:
+...
+linear_acceleration:
+  x: -0.3208230137825012
+  y: 0.1412578970193863
+  z: -9.68694019317627
+linear_acceleration_covariance:
+...
+```
 
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.

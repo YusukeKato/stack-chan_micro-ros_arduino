@@ -26,6 +26,7 @@ extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executo
 extern void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_speech(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
+extern void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
 void setup() {
   // serial setup
@@ -64,6 +65,7 @@ void setup() {
   // init micro-ROS core
   allocator = rcl_get_default_allocator();
   rclc_support_init(&support, 0, NULL, &allocator);
+  rmw_uros_sync_session(1000);  // time sync
   rclc_node_init_default(&node, "stackchan_node", "", &support);
 
   // count num_handles
@@ -72,6 +74,7 @@ void setup() {
   if (ENABLE_BATTERY) num_handles += 1;  // pub(timer)
   if (ENABLE_SPEECH) num_handles += 1;   // sub
   if (ENABLE_TOUCH) num_handles += 1;    // pub(timer)
+  if (ENABLE_IMU) num_handles += 1;      // pub(timer)
 
   if (num_handles > 0) {
     rclc_executor_init(&executor, &support.context, num_handles, &allocator);
@@ -80,6 +83,7 @@ void setup() {
     if (ENABLE_BATTERY) setup_battery(&node, &support, &executor);
     if (ENABLE_SPEECH) setup_speech(&node, &support, &executor);
     if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
+    if (ENABLE_IMU) setup_imu(&node, &support, &executor);
   } else {
     Serial.println("[WARN] All topics are disabled in config.h");
   }

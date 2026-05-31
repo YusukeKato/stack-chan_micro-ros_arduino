@@ -15,5 +15,6 @@ const bool ENABLE_CAMERA = true;
 const bool ENABLE_BATTERY = true;
 const bool ENABLE_SPEECH = true;
 const bool ENABLE_TOUCH = true;
+const bool ENABLE_IMU = true;
 
 #endif
