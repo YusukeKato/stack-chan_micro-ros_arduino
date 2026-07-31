@@ -10,8 +10,8 @@ StackChan + micro-ROS + Arduino
 - Ubuntu 24.04 LTS
 - ROS 2 Jazzy
 - Docker 29.5.0
-- Arduino IDE 2.3.8 - 2.3.9
-  - micro_ros_arduino 2.0.7-humble - 3.0.0-iron
+- Arduino IDE 2.3.8, 2.3.9
+  - micro_ros_arduino 2.0.7-humble, 3.0.0-iron
   - M5StackChan 1.0.1
   - M5Stack_Avatar 0.10.0
 
@@ -28,9 +28,9 @@ StackChan + micro-ROS + Arduino
 git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 ```
 
-4. Copy `config.h.example` to `config.h` and edit it to match your environment.
-5. Upload the program to your StackChan.
-6. Start micro-ROS Agent.
+2. Copy `config.h.example` to `config.h` and edit it to match your environment.
+3. Upload the program to your StackChan.
+4. Start micro-ROS Agent.
 
 ```sh
 docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -v6
@@ -62,7 +62,7 @@ ros2 topic echo /stackchan/joint_states
 ```
 
 ```sh
-# output:
+# output
 layout:
   dim: []
   data_offset: 0
@@ -99,7 +99,7 @@ ros2 topic echo /stackchan/battery_state
 ```
 
 ```sh
-# output:
+# output
 header:
   stamp:
     sec: 1778980809
@@ -143,7 +143,7 @@ ros2 topic echo /stackchan/touch_intensities
 ```
 
 ```sh
-# output:
+# output
 ---
 layout:
   dim: []
@@ -162,7 +162,7 @@ Get the IMU data.
 
 > **Note1:**
 >  M5StackChan(X-right, Y-down, Z-backward)
->  -> ROS 2(X-forward, Y-left, X-up)
+>  -> ROS 2(X-forward, Y-left, Z-up)
 
 > **Note2:**
 > Same axis mapping for linear and angular, but different sign inversions.
