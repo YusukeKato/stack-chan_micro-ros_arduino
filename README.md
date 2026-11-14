@@ -122,19 +122,6 @@ location: ''
 serial_number: ''
 ```
 
-### Speech
-Send text, and StackChan will speak.
-
-```sh
-ros2 topic pub --once /stackchan/speech_text std_msgs/msg/String "{data: 'ohayou gozaimasu'}"
-```
-
-YouTube↓
-
-<a href="https://www.youtube.com/watch?v=DK_6BcMXUpY">
-  <img src="https://img.youtube.com/vi/DK_6BcMXUpY/maxresdefault.jpg" alt="StackChan+micro-ROS+Arduino: Text To Speech" width="320">
-</a>
-
 ### Touch
 Get touch sensor values.
 
