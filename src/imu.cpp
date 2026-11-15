@@ -8,6 +8,8 @@
 #include <rclc/rclc.h>
 #include <sensor_msgs/msg/imu.h>
 
+#include "display_log.h"
+
 static rcl_publisher_t imu_pub;
 static sensor_msgs__msg__Imu imu_msg;
 static rcl_timer_t imu_timer;
@@ -44,7 +46,7 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  Serial.println("[DEBUG] Registering IMU Node...");
+  log_debug("Registering IMU Node...");
 
   rclc_publisher_init_default(&imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
                               "stackchan/imu");
@@ -52,5 +54,5 @@ void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *execu
   rclc_timer_init_default(&imu_timer, support, RCL_MS_TO_NS(100), imu_timer_callback);
   rclc_executor_add_timer(executor, &imu_timer);
 
-  Serial.println("[DEBUG] IMU Node Registered!");
+  log_info("IMU: ready");
 }

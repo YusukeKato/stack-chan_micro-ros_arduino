@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/error_handling.h>
@@ -10,6 +9,7 @@
 #include "config.h"  // include only here: it defines variables
 #include "src/battery.h"
 #include "src/camera.h"
+#include "src/display_log.h"
 #include "src/imu.h"
 #include "src/motor.h"
 #include "src/touch.h"
@@ -19,11 +19,7 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 
-m5avatar::Avatar avatar;
-
 unsigned int num_handles = 0;
-
-static char speech_buf[64];
 
 void setup() {
   // serial setup
@@ -33,30 +29,24 @@ void setup() {
 
   // init stack-chan
   M5StackChan.begin();
-  M5StackChan.Display().setTextSize(2);
+  display_log_init(ENABLE_DISPLAY_LOG);
+  log_info("StackChan micro-ROS booting");
   M5StackChan.Motion.goHome();
   delay(1000);
 
-  // init avatar
-  avatar.init();
-  avatar.setExpression(m5avatar::Expression::Neutral);
+  if (ENABLE_CAMERA) init_camera_hardware();  // logs the result
 
-  if (ENABLE_CAMERA && !init_camera_hardware()) {
-    Serial.println("[ERROR] Failed to initialize camera hardware!");
-  }
-
-  snprintf(speech_buf, sizeof(speech_buf), "Connecting Wi-Fi...");
-  avatar.setSpeechText(speech_buf);
+  log_info("Wi-Fi: connecting to %s", ssid);
   set_microros_wifi_transports(ssid, password, agent_ip_address, agent_port);
+  log_info("Wi-Fi: connected, IP %s", WiFi.localIP().toString().c_str());
   delay(2000);
 
-  snprintf(speech_buf, sizeof(speech_buf), "Wait micro-ROS Agent...");
-  avatar.setSpeechText(speech_buf);
-  Serial.println("[INFO] Waiting for micro-ROS Agent...");
+  log_info("Agent: waiting %s:%u", agent_ip_address, (unsigned)agent_port);
   while (rmw_uros_ping_agent(100, 1) != RMW_RET_OK) {
     M5StackChan.update();
     delay(100);
   }
+  log_info("Agent: connected");
 
   // init micro-ROS core
   allocator = rcl_get_default_allocator();
@@ -79,13 +69,10 @@ void setup() {
     if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
     if (ENABLE_IMU) setup_imu(&node, &support, &executor);
   } else {
-    Serial.println("[WARN] All topics are disabled in config.h");
+    log_warn("All topics are disabled in config.h");
   }
 
-  snprintf(speech_buf, sizeof(speech_buf), "ROS 2 Ready!");
-  avatar.setSpeechText(speech_buf);
-
-  Serial.println("[DEBUG] Setup completely finished! Entering loop().");
+  log_info("ROS 2 ready! (node: stackchan_node)");
 }
 
 void loop() {
@@ -93,7 +80,12 @@ void loop() {
   if (num_handles > 0) {
     rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
     if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
-      Serial.printf("[ERROR] Executor spin failed! Error code: %d\n", ret);
+      // limit to once per second so the screen is not flooded
+      static uint32_t last_error_ms = 0;
+      if (millis() - last_error_ms > 1000) {
+        log_error("Executor spin failed: %d", (int)ret);
+        last_error_ms = millis();
+      }
       delay(100);
     }
   }

@@ -23,13 +23,11 @@ Other versions (e.g. Ubuntu 26.04 / ROS 2 Lyrical, or newer board packages and l
 | Library | M5StackChan | 1.0.1 |
 | Library | M5Unified | 0.2.16 |
 | Library | M5GFX | 0.2.22 |
-| Library | M5Stack_Avatar | 0.10.0 |
 
 ## Setup
 - [ROS 2 Jazzy Installation](https://docs.ros.org/en/jazzy/Installation.html)
 - [StackChan Arduino Sample Program Build and Flash](https://docs.m5stack.com/en/arduino/stackchan/program)
 - [micro-ROS/micro_ros_arduino](https://github.com/micro-ROS/micro_ros_arduino)
-- [stack-chan/m5stack-avatar](https://github.com/stack-chan/m5stack-avatar)
 
 ## Usage
 1. Clone this repository.
@@ -56,10 +54,11 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 
 5. Press the reset button on your StackChan to restart it.
 
-### Default
-Displays the `m5avatar::Expression:::Neutral` face.
+### Display Log
+The screen shows logs: boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, battery changes, and warnings/errors (yellow/red).
+The same logs (plus debug logs) are always printed to Serial.
 
-<img width="335" height="302" alt="Neutral Face" src="https://github.com/user-attachments/assets/8ea40554-4dda-495b-bb25-85bc8142fb87" />
+To turn off the screen log, set `ENABLE_DISPLAY_LOG = false` in `config.h`.
 
 ### Motor
 Control the motor by specifying the angle.
@@ -204,18 +203,19 @@ linear_acceleration_covariance:
 <img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
 ## Note
-- You can check the debug logs in the Arduino IDE Serial Monitor.
+- You can check all logs, including debug logs, in the Arduino IDE Serial Monitor (115200 baud).
 
 ## File Structure
 ```
 stack-chan_micro-ros_arduino.ino  # main: Wi-Fi, micro-ROS node, executor
-config.h.example                  # copy to config.h (Wi-Fi, agent, topic on/off)
+config.h.example                  # copy to config.h (Wi-Fi, agent, topic/log on/off)
 src/
-  motor.h/.cpp    # /stackchan/joint_states, /stackchan/joint_commands
-  camera.h/.cpp   # /stackchan/camera/image/compressed
-  battery.h/.cpp  # /stackchan/battery_state
-  touch.h/.cpp    # /stackchan/touch_intensities
-  imu.h/.cpp      # /stackchan/imu
+  display_log.h/.cpp  # logs to Serial and the screen
+  motor.h/.cpp        # /stackchan/joint_states, /stackchan/joint_commands
+  camera.h/.cpp       # /stackchan/camera/image/compressed
+  battery.h/.cpp      # /stackchan/battery_state
+  touch.h/.cpp        # /stackchan/touch_intensities
+  imu.h/.cpp          # /stackchan/imu
 ```
 
 ## Format
