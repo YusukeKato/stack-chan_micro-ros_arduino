@@ -12,6 +12,7 @@
 #include "src/display_log.h"
 #include "src/imu.h"
 #include "src/motor.h"
+#include "src/speaker.h"
 #include "src/touch.h"
 
 rclc_executor_t executor;
@@ -60,6 +61,7 @@ void setup() {
   if (ENABLE_BATTERY) num_handles += 1;  // pub(timer)
   if (ENABLE_TOUCH) num_handles += 1;    // pub(timer)
   if (ENABLE_IMU) num_handles += 1;      // pub(timer)
+  if (ENABLE_SPEAKER) num_handles += 1;  // sub
 
   if (num_handles > 0) {
     rclc_executor_init(&executor, &support.context, num_handles, &allocator);
@@ -68,6 +70,7 @@ void setup() {
     if (ENABLE_BATTERY) setup_battery(&node, &support, &executor);
     if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
     if (ENABLE_IMU) setup_imu(&node, &support, &executor);
+    if (ENABLE_SPEAKER) setup_speaker(&node, &support, &executor, SPEAKER_VOLUME);
   } else {
     display_log("[WARN] All topics are disabled in config.h");
   }
