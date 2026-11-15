@@ -68,13 +68,14 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 5. Press the reset button on your StackChan to restart it.
 
 ## Screen
-- Lines 1-5 (fixed, updated in place; values are rounded to fit one line):
+- Lines 1-6 (fixed, updated in place; values are rounded to fit one line):
   - `Joint  yaw 12.3  pitch 45.0 deg`
   - `Battery  93%  4.21 V  charging`
   - `IMU accel  x -0.3  y 0.1  z 9.7 m/s^2`
   - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s`
   - `Touch  front 3  middle 0  back 1`
-- Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready features, received commands, and `[WARN]` / `[ERROR]` messages
+  - `Camera  5.0 fps  1.6 KB` (publish rate and JPEG size)
+- Line 7 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready features, received commands, and `[WARN]` / `[ERROR]` messages
 
 The scrolling log is also printed to Serial (115200 baud). The fixed lines are screen only.
 
@@ -97,7 +98,8 @@ ros2 topic echo /stackchan/joint_states
 ```
 
 ### Camera
-JPEG, 160 x 120.
+JPEG, 160 x 120, 5 Hz. Settings are at the top of `src/camera.cpp`.
+A frame must fit in one micro-ROS message (about 2 KB), so larger frame sizes (e.g. 320 x 240) or high JPEG quality are not sent (the Camera line on the screen shows the actual rate).
 
 ```sh
 ros2 topic hz /stackchan/camera/image/compressed
