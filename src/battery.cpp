@@ -40,9 +40,10 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  rclc_publisher_init_default(&battery_pub, node,
-                              ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
-                              "stackchan/battery_state");
+  // best effort: no delivery wait (reliable blocks up to 1 s per publish)
+  rclc_publisher_init_best_effort(&battery_pub, node,
+                                  ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
+                                  "stackchan/battery_state");
   set_string(&battery_msg.header.frame_id, "base_link");
   rclc_timer_init_default(&battery_timer, support, RCL_MS_TO_NS(1000), battery_timer_callback);
   rclc_executor_add_timer(executor, &battery_timer);
