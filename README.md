@@ -7,13 +7,23 @@ StackChan + micro-ROS + Arduino
 - [M5Stack/StackChan](https://docs.m5stack.com/en/StackChan)
 
 ## Development Environment
+Verified on the following versions.
+Other versions (e.g. Ubuntu 26.04 / ROS 2 Lyrical, or newer board packages and libraries) may not work.
+
 - Ubuntu 24.04 LTS
 - ROS 2 Jazzy
 - Docker 29.5.0
-- Arduino IDE 2.3.8, 2.3.9
-  - micro_ros_arduino 2.0.7-humble, 3.0.0-iron
-  - M5StackChan 1.0.1
-  - M5Stack_Avatar 0.10.0
+- Arduino IDE 2.3.8, 2.3.9 / arduino-cli 1.6.0
+
+| Type | Name | Version |
+|---|---|---|
+| Board package | M5Stack (`m5stack:esp32`) | 3.3.7 |
+| Board | M5CoreS3 (`m5stack:esp32:m5stack_cores3`) | default options |
+| Library | micro_ros_arduino | 3.0.0-iron |
+| Library | M5StackChan | 1.0.1 |
+| Library | M5Unified | 0.2.16 |
+| Library | M5GFX | 0.2.22 |
+| Library | M5Stack_Avatar | 0.10.0 |
 
 ## Setup
 - [ROS 2 Jazzy Installation](https://docs.ros.org/en/jazzy/Installation.html)
@@ -29,7 +39,15 @@ git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 ```
 
 2. Copy `config.h.example` to `config.h` and edit it to match your environment.
-3. Upload the program to your StackChan.
+3. Upload the program to your StackChan with Arduino IDE, or with arduino-cli:
+
+```sh
+arduino-cli compile -b m5stack:esp32:m5stack_cores3 .
+arduino-cli upload -b m5stack:esp32:m5stack_cores3 -p <PORT> .
+```
+
+Replace `<PORT>` with the serial port of your StackChan (e.g. `/dev/ttyACM0`). You can find it with `arduino-cli board list`.
+
 4. Start micro-ROS Agent.
 
 ```sh
