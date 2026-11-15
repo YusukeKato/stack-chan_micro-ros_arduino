@@ -77,7 +77,7 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
   - `IMU accel  x -0.3  y 0.1  z 9.7 m/s^2`
   - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s`
   - `Touch  front 3  middle 0  back 1`
-  - `Camera  5.0 fps  1.6 KB` (publish rate and JPEG size)
+  - `Camera  1.6 KB  q22` (JPEG size and quality)
 - Line 7 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready features, received commands, and `[WARN]` / `[ERROR]` messages
 
 The scrolling log is also printed to Serial (115200 baud). The fixed lines are screen only.
@@ -102,7 +102,7 @@ ros2 topic echo /stackchan/joint_states
 
 ### Camera
 JPEG, 160 x 120, 5 Hz. Settings are at the top of `src/camera.cpp`.
-A frame must fit in one micro-ROS message (about 2 KB). Frames near that limit broke the micro-ROS Agent, so frames larger than 1500 bytes are dropped (`[WARN] Camera: frame ... dropped`). The Camera line on the screen shows the actual rate and size.
+A frame must fit in one micro-ROS message (about 2 KB), and frames near that limit broke the micro-ROS Agent. The JPEG quality is adjusted per frame (5-30) to keep frames below 1700 bytes. The Camera line on the screen shows the size and quality.
 
 ```sh
 ros2 topic hz /stackchan/camera/image/compressed
@@ -162,7 +162,8 @@ src/
   imu.h/.cpp          # imu
   speaker.h/.cpp      # tone
   display_log.h/.cpp  # logs to Serial and the screen
-  ros_utils.h/.cpp    # stamp, string and publish helpers
+  ros_utils.h/.cpp    # stamp, string, publish and check helpers
+  wifi_transport.h/.cpp  # Wi-Fi UDP transport to the micro-ROS Agent
 ```
 
 ## Format

@@ -14,6 +14,7 @@
 #include "src/ros_utils.h"
 #include "src/speaker.h"
 #include "src/touch.h"
+#include "src/wifi_transport.h"
 
 rclc_executor_t executor;
 rclc_support_t support;
@@ -38,7 +39,7 @@ void setup() {
   if (ENABLE_CAMERA) init_camera_hardware();  // logs the result
 
   display_log("Wi-Fi: connecting to %s", ssid);
-  set_microros_wifi_transports(ssid, password, agent_ip_address, agent_port);
+  set_wifi_transport(ssid, password, agent_ip_address, agent_port);
   display_log("Wi-Fi: connected, IP %s", WiFi.localIP().toString().c_str());
   delay(2000);
 
@@ -77,14 +78,15 @@ void setup() {
 void loop() {
   M5StackChan.update();
   if (num_handles > 0) {
-    rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+    // timeout 0: with any non-zero timeout, the micro-XRCE session loop ran until the next
+    // second boundary (about 1 s per call), so every topic dropped to 1 Hz
+    rcl_ret_t ret = rclc_executor_spin_some(&executor, 0);
     if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
       static uint32_t last_error_ms = 0;
       if (every_ms(&last_error_ms, 1000)) display_log("[ERROR] Executor spin failed: %d", (int)ret);
     }
-  } else {
-    delay(10);
   }
+  delay(1);
   if (ENABLE_MOTOR) update_motor();
   if (ENABLE_CAMERA) update_camera();
   if (ENABLE_BATTERY) update_battery();
