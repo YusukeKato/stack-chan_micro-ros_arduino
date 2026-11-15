@@ -12,8 +12,8 @@ Other versions (e.g. Ubuntu 26.04 / ROS 2 Lyrical, or newer board packages and l
 
 - Ubuntu 24.04 LTS
 - ROS 2 Jazzy
-- Docker 29.5.0
-- Arduino IDE 2.3.8, 2.3.9 / arduino-cli 1.6.0
+- Docker 29.9.3
+- Arduino IDE 2.3.9 / arduino-cli 1.6.0
 
 | Type | Name | Version |
 |---|---|---|
