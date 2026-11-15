@@ -62,7 +62,7 @@ The screen shows:
   - `IMU accel  x -0.3  y 0.1  z -9.7 m/s^2` (ROS axes)
   - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s` (ROS axes)
   - `Touch  front 3  middle 0  back 1`
-- Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, and `[WARN]` / `[ERROR]` messages
+- Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, and `[WARN]` / `[ERROR]` messages
 
 The scrolling log lines are always printed to Serial too (the fixed lines are screen only).
 

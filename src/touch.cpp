@@ -25,11 +25,6 @@ static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     rcl_publish(&touch_pub, &touch_msg, NULL);
     display_status(STATUS_TOUCH, "Touch  front %d  middle %d  back %d", (int)intensities[0],
                    (int)intensities[1], (int)intensities[2]);
-
-    if (M5StackChan.TouchSensor.wasClicked()) {
-      display_log("Touch: clicked (%d, %d, %d)", (int)intensities[0], (int)intensities[1],
-                  (int)intensities[2]);
-    }
   }
 }
 
