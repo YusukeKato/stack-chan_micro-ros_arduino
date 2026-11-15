@@ -53,22 +53,41 @@ git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 ```
 
 2. Copy `config.h.example` to `config.h` and edit it (Wi-Fi, micro-ROS Agent address, feature on/off).
-3. Upload the program to your StackChan with Arduino IDE, or with arduino-cli:
+3. micro_ros_arduino 3.0.0-iron has no prebuilt library for ESP32-S3 (CoreS3). Copy the ESP32 one, otherwise the build fails. Do this again after reinstalling or updating micro_ros_arduino.
+
+```sh
+mkdir -p ~/Arduino/libraries/micro_ros_arduino/src/esp32s3
+cp ~/Arduino/libraries/micro_ros_arduino/src/esp32/libmicroros.a ~/Arduino/libraries/micro_ros_arduino/src/esp32s3/
+```
+
+4. Allow access to the serial port of your StackChan (e.g. `/dev/ttyACM0`). You can find the port with `arduino-cli board list`.
+
+```sh
+sudo chmod a+rw /dev/ttyACM0
+```
+
+The setting is reset when the StackChan is reconnected. To allow it permanently, add your user to the `dialout` group and log in again.
+
+```sh
+sudo usermod -aG dialout $USER
+```
+
+5. Upload the program to your StackChan with Arduino IDE, or with arduino-cli:
 
 ```sh
 arduino-cli compile -b m5stack:esp32:m5stack_cores3 .
 arduino-cli upload -b m5stack:esp32:m5stack_cores3 -p <PORT> .
 ```
 
-Replace `<PORT>` with the serial port of your StackChan (e.g. `/dev/ttyACM0`). You can find it with `arduino-cli board list`.
+Replace `<PORT>` with the serial port of your StackChan (e.g. `/dev/ttyACM0`).
 
-4. Start micro-ROS Agent.
+6. Start micro-ROS Agent.
 
 ```sh
 docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -v6
 ```
 
-5. Press the reset button on your StackChan to restart it.
+7. Press the reset button on your StackChan to restart it.
 
 ## Screen
 - Lines 1-6 (fixed, updated in place; values are rounded to fit one line):
