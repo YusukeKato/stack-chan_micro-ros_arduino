@@ -43,8 +43,10 @@ git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 
 ```sh
 arduino-cli compile -b m5stack:esp32:m5stack_cores3 .
-arduino-cli upload -b m5stack:esp32:m5stack_cores3 -p /dev/ttyACM0 .
+arduino-cli upload -b m5stack:esp32:m5stack_cores3 -p <PORT> .
 ```
+
+Replace `<PORT>` with the serial port of your StackChan (e.g. `/dev/ttyACM0`). You can find it with `arduino-cli board list`.
 
 4. Start micro-ROS Agent.
 
