@@ -47,20 +47,14 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     battery_msg.header.frame_id.capacity = battery_msg.header.frame_id.size + 1;
     // publish
     rcl_publish(&battery_pub, &battery_msg, NULL);
-    // log only when level or charge state changes
-    static int32_t last_level = -1;
-    static uint8_t last_status = 0xFF;
-    if (level != last_level || battery_msg.power_supply_status != last_status) {
-      const char *status = "unknown";
-      if (charge_state == m5::Power_Class::is_charging) {
-        status = "charging";
-      } else if (charge_state == m5::Power_Class::is_discharging) {
-        status = "discharging";
-      }
-      display_log("Battery: %d%% %.2fV %s", (int)level, battery_msg.voltage, status);
-      last_level = level;
-      last_status = battery_msg.power_supply_status;
+    const char *status = "unknown";
+    if (charge_state == m5::Power_Class::is_charging) {
+      status = "charging";
+    } else if (charge_state == m5::Power_Class::is_discharging) {
+      status = "discharging";
     }
+    display_status(STATUS_BATTERY, "Battery  %d%%  %.2f V  %s", (int)level, battery_msg.voltage,
+                   status);
   }
 }
 

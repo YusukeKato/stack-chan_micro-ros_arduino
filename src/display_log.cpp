@@ -5,8 +5,10 @@
 #include <stdarg.h>
 
 static const int LINE_HEIGHT = 16;  // Font2
+static const int STATUS_HEIGHT = LINE_HEIGHT * STATUS_LINE_COUNT;
 
 static bool screen_enabled = false;
+static char last_status[STATUS_LINE_COUNT][64];
 
 void display_log_init(bool enable_screen) {
   screen_enabled = enable_screen;
@@ -15,9 +17,10 @@ void display_log_init(bool enable_screen) {
   M5.Display.setFont(&fonts::Font2);  // ~40 chars x 15 lines
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
   M5.Display.setTextScroll(true);
-  // first line is reserved for joint angles, logs scroll below it
-  M5.Display.setScrollRect(0, LINE_HEIGHT, M5.Display.width(), M5.Display.height() - LINE_HEIGHT);
-  M5.Display.setCursor(0, LINE_HEIGHT);
+  // top lines are reserved for status, logs scroll below them
+  M5.Display.setScrollRect(0, STATUS_HEIGHT, M5.Display.width(),
+                           M5.Display.height() - STATUS_HEIGHT);
+  M5.Display.setCursor(0, STATUS_HEIGHT);
 }
 
 void display_log(const char *fmt, ...) {
@@ -31,14 +34,18 @@ void display_log(const char *fmt, ...) {
   if (screen_enabled) M5.Display.println(buf);
 }
 
-void display_joint_angles(float yaw_deg, float pitch_deg) {
-  if (!screen_enabled) return;
-  char buf[48];
-  snprintf(buf, sizeof(buf), "Joint yaw %6.1f  pitch %6.1f [deg]", yaw_deg, pitch_deg);
+void display_status(StatusLine line, const char *fmt, ...) {
+  if (!screen_enabled || line < 0 || line >= STATUS_LINE_COUNT) return;
+  char buf[sizeof(last_status[0])];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, args);
+  va_end(args);
+
   // redraw only when the text changes
-  static char last[48] = "";
-  if (strcmp(buf, last) == 0) return;
-  strcpy(last, buf);
-  M5.Display.fillRect(0, 0, M5.Display.width(), LINE_HEIGHT, TFT_BLACK);
-  M5.Display.drawString(buf, 0, 0);  // does not move the log cursor
+  if (strcmp(buf, last_status[line]) == 0) return;
+  strcpy(last_status[line], buf);
+  int y = LINE_HEIGHT * line;
+  M5.Display.fillRect(0, y, M5.Display.width(), LINE_HEIGHT, TFT_BLACK);
+  M5.Display.drawString(buf, 0, y);  // does not move the log cursor
 }

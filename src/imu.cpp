@@ -42,6 +42,10 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     imu_msg.header.frame_id.capacity = imu_msg.header.frame_id.size + 1;
 
     rcl_publish(&imu_pub, &imu_msg, NULL);
+    display_status(STATUS_IMU, "IMU  a %.1f %.1f %.1f  g %.1f %.1f %.1f",
+                   imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y,
+                   imu_msg.linear_acceleration.z, imu_msg.angular_velocity.x,
+                   imu_msg.angular_velocity.y, imu_msg.angular_velocity.z);
   }
 }
 

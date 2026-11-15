@@ -41,7 +41,9 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     pub_msg.data.data[0] = current_yaw;
     pub_msg.data.data[1] = current_pitch;
     rcl_publish(&angle_pub, &pub_msg, NULL);
-    display_joint_angles(current_yaw / 10.0f, current_pitch / 10.0f);  // [0.1 deg] -> [deg]
+    // [0.1 deg] -> [deg]
+    display_status(STATUS_JOINT, "Joint  yaw %.1f  pitch %.1f deg", current_yaw / 10.0f,
+                   current_pitch / 10.0f);
   }
 }
 

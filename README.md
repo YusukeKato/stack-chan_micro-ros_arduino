@@ -56,10 +56,14 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 
 ### Display Log
 The screen shows:
-- Line 1 (fixed, updated in place): current joint angles [deg]
-- Line 2 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, battery changes, and `[WARN]` / `[ERROR]` messages
+- Lines 1-4 (fixed, updated in place; values are rounded to fit one line):
+  - `Joint  yaw 12.3  pitch 45.0 deg`
+  - `Battery  93%  4.21 V  charging`
+  - `IMU  a -0.3 0.1 -9.7  g 0.1 0.1 -0.0` (accel [m/s^2], gyro [rad/s], ROS axes)
+  - `Touch  front 3  middle 0  back 1`
+- Line 5 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, and `[WARN]` / `[ERROR]` messages
 
-The same log lines (except joint angles) are always printed to Serial.
+The scrolling log lines are always printed to Serial too (the fixed lines are screen only).
 
 To turn off the screen log, set `ENABLE_DISPLAY_LOG = false` in `config.h`.
 
