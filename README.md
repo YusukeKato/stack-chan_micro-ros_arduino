@@ -67,10 +67,26 @@ The screen shows:
 The scrolling log lines are always printed to Serial too (the fixed lines are screen only).
 
 ### Motor
-Control the motor by specifying the angle.
+Joints use `sensor_msgs/msg/JointState` with angles in [rad].
+
+| Joint | Range [rad] | Positive direction |
+|---|---|---|
+| `yaw_joint` | -2.23 to 2.23 (±128°) | left |
+| `pitch_joint` | 0.0 to 1.57 (0° to 90°) | up |
+
+Out-of-range angles are clamped.
+
+Move the joints by name. Only the named joints move.
 
 ```sh
-ros2 topic pub --once /stackchan/joint_commands std_msgs/msg/Int32MultiArray "{data: [200, 500]}"
+ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{name: [yaw_joint, pitch_joint], position: [0.5, 0.3]}"
+ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{name: [pitch_joint], position: [0.0]}"
+```
+
+Without names, `position` is `[yaw, pitch]`.
+
+```sh
+ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{position: [0.0, 0.0]}"
 ```
 
 <img width="320" height="240" alt="control stack-chan motor" src="https://github.com/user-attachments/assets/99937d38-68b9-4965-a578-3f4c2f4793d5" />
@@ -78,7 +94,7 @@ ros2 topic pub --once /stackchan/joint_commands std_msgs/msg/Int32MultiArray "{d
 <br>  
 <br>
 
-Get the current motor angle.
+Get the current joint angles (10 Hz).
 
 ```sh
 ros2 topic echo /stackchan/joint_states
@@ -86,15 +102,20 @@ ros2 topic echo /stackchan/joint_states
 
 ```sh
 # output
-layout:
-  dim: []
-  data_offset: 0
-data:
-- 331
-- 300
+header:
+  stamp:
+    sec: 1780211663
+    nanosec: 838000000
+  frame_id: ''
+name:
+- yaw_joint
+- pitch_joint
+position:
+- 0.5009094953223726
+- 0.29845130209103027
+velocity: []
+effort: []
 ```
-
-<img width="340" height="192" alt="get stack-chan motor angle" src="https://github.com/user-attachments/assets/8355e25b-2884-4712-9fd0-0706c9e662dc" />
 
 ### Camera
 Get the publish rate of the camera image topic.
