@@ -1,4 +1,7 @@
+#include "touch.h"
+
 #include <Arduino.h>
+#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
@@ -6,15 +9,17 @@
 #include <rclc/rclc.h>
 #include <std_msgs/msg/int32_multi_array.h>
 
-rcl_publisher_t touch_pub;
-std_msgs__msg__Int32MultiArray touch_msg;
-int32_t touch_data[3] = {0, 0, 0};
-rcl_timer_t touch_timer;
+extern m5avatar::Avatar avatar;
 
-uint32_t last_touch_time = 0;
-bool is_expression_changed = false;
+static rcl_publisher_t touch_pub;
+static std_msgs__msg__Int32MultiArray touch_msg;
+static int32_t touch_data[3] = {0, 0, 0};
+static rcl_timer_t touch_timer;
 
-void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+static uint32_t last_touch_time = 0;
+static bool is_expression_changed = false;
+
+static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     // intensities[0]: Front, intensities[1]: Middle, intensities[2]: Back
     auto intensities = M5StackChan.TouchSensor.getIntensities();

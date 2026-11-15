@@ -7,7 +7,12 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 
-#include "config.h"
+#include "config.h"  // include only here: it defines variables
+#include "src/battery.h"
+#include "src/camera.h"
+#include "src/imu.h"
+#include "src/motor.h"
+#include "src/touch.h"
 
 rclc_executor_t executor;
 rclc_support_t support;
@@ -19,13 +24,6 @@ m5avatar::Avatar avatar;
 unsigned int num_handles = 0;
 
 static char speech_buf[64];
-
-extern bool init_camera_hardware();
-extern void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
 void setup() {
   // serial setup

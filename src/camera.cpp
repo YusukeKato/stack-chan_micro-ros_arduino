@@ -1,6 +1,8 @@
 // reference:
 // https://docs.m5stack.com/ja/arduino/stackchan/camera
 
+#include "camera.h"
+
 #include <Arduino.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
@@ -12,9 +14,9 @@
 #include "esp_camera.h"
 #include "img_converters.h"
 
-rcl_publisher_t camera_pub;
-sensor_msgs__msg__CompressedImage image_msg;
-rcl_timer_t camera_timer;
+static rcl_publisher_t camera_pub;
+static sensor_msgs__msg__CompressedImage image_msg;
+static rcl_timer_t camera_timer;
 
 static camera_config_t camera_config = {
     .pin_pwdn = -1,
@@ -62,7 +64,7 @@ bool init_camera_hardware() {
 }
 
 // publish camera image
-void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     camera_fb_t *fb = esp_camera_fb_get();
     if (fb) {

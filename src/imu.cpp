@@ -1,3 +1,5 @@
+#include "imu.h"
+
 #include <Arduino.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
@@ -6,11 +8,11 @@
 #include <rclc/rclc.h>
 #include <sensor_msgs/msg/imu.h>
 
-rcl_publisher_t imu_pub;
-sensor_msgs__msg__Imu imu_msg;
-rcl_timer_t imu_timer;
+static rcl_publisher_t imu_pub;
+static sensor_msgs__msg__Imu imu_msg;
+static rcl_timer_t imu_timer;
 
-void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     M5.Imu.update();
     auto data = M5.Imu.getImuData();
