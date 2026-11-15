@@ -21,7 +21,6 @@ static const int JPEG_QUALITY = 30;       // 1-100
 
 static rcl_publisher_t camera_pub;
 static sensor_msgs__msg__CompressedImage image_msg;
-static rcl_timer_t camera_timer;
 
 static camera_config_t camera_config = {
     .pin_pwdn = -1,
@@ -66,8 +65,9 @@ bool init_camera_hardware() {
 }
 
 // capture, convert to JPEG and publish
-static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer == NULL) return;
+void update_camera() {
+  static uint32_t last_ms = 0;
+  if (!every_ms(&last_ms, CAMERA_PERIOD_MS)) return;
   camera_fb_t *fb = esp_camera_fb_get();
   if (fb == NULL) return;
   uint8_t *jpg = NULL;
@@ -96,14 +96,12 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   esp_camera_fb_return(fb);
 }
 
-void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  rclc_publisher_init_default(&camera_pub, node,
-                              ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
-                              "stackchan/camera/image/compressed");
+void setup_camera(rcl_node_t *node) {
+  rcl_ret_t ret = rclc_publisher_init_default(
+      &camera_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
+      "stackchan/camera/image/compressed");
+  if (!check(ret, "Camera publisher")) return;
   set_string(&image_msg.header.frame_id, "camera_link");
   set_string(&image_msg.format, "jpeg");
-  rclc_timer_init_default(&camera_timer, support, RCL_MS_TO_NS(CAMERA_PERIOD_MS),
-                          camera_timer_callback);
-  rclc_executor_add_timer(executor, &camera_timer);
   display_log("Camera: ready");
 }

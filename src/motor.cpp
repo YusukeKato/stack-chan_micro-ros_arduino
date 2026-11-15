@@ -18,7 +18,6 @@ static const int ANGLE_MAX[JOINT_COUNT] = {1280, 900};  // [0.1 deg]
 
 static rcl_publisher_t joint_pub;
 static rcl_subscription_t joint_sub;
-static rcl_timer_t motor_timer;
 
 // publish message buffers
 static sensor_msgs__msg__JointState pub_msg;
@@ -99,8 +98,9 @@ static void joint_subscription_callback(const void *msgin) {
 }
 
 // publish current joint angles [rad]
-static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer == NULL) return;
+void update_motor() {
+  static uint32_t last_ms = 0;
+  if (!every_ms(&last_ms, 100)) return;
   int current[JOINT_COUNT] = {M5StackChan.Motion.getCurrentYawAngle(),
                               M5StackChan.Motion.getCurrentPitchAngle()};
   for (int j = 0; j < JOINT_COUNT; j++) pub_position[j] = servo_to_rad(current[j]);
@@ -111,16 +111,18 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
                  current[PITCH] / 10.0f);
 }
 
-void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
+void setup_motor(rcl_node_t *node, rclc_executor_t *executor) {
   // publisher
   // best effort: no delivery wait (reliable blocks up to 1 s per publish)
-  rclc_publisher_init_best_effort(&joint_pub, node,
-                                  ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
-                                  "stackchan/joint_states");
+  rcl_ret_t ret = rclc_publisher_init_best_effort(
+      &joint_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
+      "stackchan/joint_states");
+  if (!check(ret, "Motor publisher")) return;
   // subscriber
-  rclc_subscription_init_default(&joint_sub, node,
-                                 ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
-                                 "stackchan/joint_commands");
+  ret = rclc_subscription_init_default(&joint_sub, node,
+                                       ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
+                                       "stackchan/joint_commands");
+  if (!check(ret, "Motor subscriber")) return;
 
   // publish msg buffer setup (velocity/effort are empty)
   for (int j = 0; j < JOINT_COUNT; j++) set_string(&pub_names[j], JOINT_NAMES[j]);
@@ -154,10 +156,8 @@ void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
   sub_msg.effort.size = 0;
   sub_msg.effort.capacity = JOINT_COUNT;
 
-  // timer setup
-  rclc_timer_init_default(&motor_timer, support, RCL_MS_TO_NS(100), motor_timer_callback);
-  rclc_executor_add_subscription(executor, &joint_sub, &sub_msg, &joint_subscription_callback,
-                                 ON_NEW_DATA);
-  rclc_executor_add_timer(executor, &motor_timer);
+  ret = rclc_executor_add_subscription(executor, &joint_sub, &sub_msg, &joint_subscription_callback,
+                                       ON_NEW_DATA);
+  if (!check(ret, "Motor executor")) return;
   display_log("Motor: ready");
 }

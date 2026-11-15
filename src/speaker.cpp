@@ -4,6 +4,7 @@
 #include <std_msgs/msg/float32_multi_array.h>
 
 #include "display_log.h"
+#include "ros_utils.h"
 
 static const float MAX_FREQUENCY = 20000.0f;  // [Hz]
 static const float MAX_DURATION = 10000.0f;   // [ms]
@@ -35,16 +36,17 @@ static void tone_subscription_callback(const void *msgin) {
   display_log("Speaker: tone %.0f Hz %.0f ms", frequency, duration);
 }
 
-void setup_speaker(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor,
-                   uint8_t volume) {
+void setup_speaker(rcl_node_t *node, rclc_executor_t *executor, uint8_t volume) {
   M5.Speaker.setVolume(volume);
-  rclc_subscription_init_default(&tone_sub, node,
-                                 ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
-                                 "stackchan/tone");
+  rcl_ret_t ret = rclc_subscription_init_default(
+      &tone_sub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
+      "stackchan/tone");
+  if (!check(ret, "Speaker subscriber")) return;
   tone_msg.data.data = tone_data;
   tone_msg.data.size = 0;
   tone_msg.data.capacity = 2;
-  rclc_executor_add_subscription(executor, &tone_sub, &tone_msg, &tone_subscription_callback,
-                                 ON_NEW_DATA);
+  ret = rclc_executor_add_subscription(executor, &tone_sub, &tone_msg, &tone_subscription_callback,
+                                       ON_NEW_DATA);
+  if (!check(ret, "Speaker executor")) return;
   display_log("Speaker: ready (volume %u)", (unsigned)volume);
 }
