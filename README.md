@@ -1,10 +1,23 @@
 # stack-chan_micro-ros_arduino
-StackChan + micro-ROS + Arduino
+Base firmware to use [M5Stack StackChan](https://docs.m5stack.com/en/StackChan) from ROS 2 via micro-ROS (Arduino).
+It only bridges the hardware (motors, camera, sensors, speaker) to ROS 2 topics. Apps (face, speech, behaviors) run on the PC side.
 
 <img width="320" height="240" alt="stack-chan_micro-ros_arduino_servo-motor" src="https://github.com/user-attachments/assets/99937d38-68b9-4965-a578-3f4c2f4793d5" />
 
-## Target StackChan
-- [M5Stack/StackChan](https://docs.m5stack.com/en/StackChan)
+## Topics
+Node: `stackchan_node`
+
+| Topic | Type | Direction | Rate |
+|---|---|---|---|
+| `/stackchan/joint_states` | `sensor_msgs/msg/JointState` | publish | 10 Hz |
+| `/stackchan/joint_commands` | `sensor_msgs/msg/JointState` | subscribe | - |
+| `/stackchan/camera/image/compressed` | `sensor_msgs/msg/CompressedImage` | publish | 5 Hz |
+| `/stackchan/battery_state` | `sensor_msgs/msg/BatteryState` | publish | 1 Hz |
+| `/stackchan/touch_intensities` | `std_msgs/msg/Int32MultiArray` | publish | 10 Hz |
+| `/stackchan/imu` | `sensor_msgs/msg/Imu` | publish | 10 Hz |
+| `/stackchan/tone` | `std_msgs/msg/Float32MultiArray` | subscribe | - |
+
+Each feature can be turned on/off in `config.h`.
 
 ## Development Environment
 Verified on the following versions.
@@ -24,7 +37,7 @@ Other versions (e.g. Ubuntu 26.04 / ROS 2 Lyrical, or newer board packages and l
 | Library | M5Unified | 0.2.16 |
 | Library | M5GFX | 0.2.22 |
 
-## Setup
+References:
 - [ROS 2 Jazzy Installation](https://docs.ros.org/en/jazzy/Installation.html)
 - [StackChan Arduino Sample Program Build and Flash](https://docs.m5stack.com/en/arduino/stackchan/program)
 - [micro-ROS/micro_ros_arduino](https://github.com/micro-ROS/micro_ros_arduino)
@@ -36,7 +49,7 @@ Other versions (e.g. Ubuntu 26.04 / ROS 2 Lyrical, or newer board packages and l
 git clone https://github.com/YusukeKato/stack-chan_micro-ros_arduino.git
 ```
 
-2. Copy `config.h.example` to `config.h` and edit it to match your environment.
+2. Copy `config.h.example` to `config.h` and edit it (Wi-Fi, micro-ROS Agent address, feature on/off).
 3. Upload the program to your StackChan with Arduino IDE, or with arduino-cli:
 
 ```sh
@@ -54,79 +67,40 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 
 5. Press the reset button on your StackChan to restart it.
 
-### Display Log
-The screen shows:
+## Screen
 - Lines 1-5 (fixed, updated in place; values are rounded to fit one line):
   - `Joint  yaw 12.3  pitch 45.0 deg`
   - `Battery  93%  4.21 V  charging`
-  - `IMU accel  x -0.3  y 0.1  z -9.7 m/s^2` (ROS axes)
-  - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s` (ROS axes)
+  - `IMU accel  x -0.3  y 0.1  z -9.7 m/s^2`
+  - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s`
   - `Touch  front 3  middle 0  back 1`
-- Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, and `[WARN]` / `[ERROR]` messages
+- Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready features, received commands, and `[WARN]` / `[ERROR]` messages
 
-The scrolling log lines are always printed to Serial too (the fixed lines are screen only).
+The scrolling log is also printed to Serial (115200 baud). The fixed lines are screen only.
 
+## Features
 ### Motor
-Joints use `sensor_msgs/msg/JointState` with angles in [rad].
+Joint angles are in [rad].
 
 | Joint | Range [rad] | Positive direction |
 |---|---|---|
 | `yaw_joint` | -2.23 to 2.23 (±128°) | left |
 | `pitch_joint` | 0.0 to 1.57 (0° to 90°) | up |
 
-Out-of-range angles are clamped.
-
-Move the joints by name. Only the named joints move.
+Out-of-range angles are clamped. With `name`, only the named joints move. Without `name`, `position` is `[yaw, pitch]`.
 
 ```sh
 ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{name: [yaw_joint, pitch_joint], position: [0.5, 0.3]}"
 ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{name: [pitch_joint], position: [0.0]}"
-```
-
-Without names, `position` is `[yaw, pitch]`.
-
-```sh
 ros2 topic pub --once /stackchan/joint_commands sensor_msgs/msg/JointState "{position: [0.0, 0.0]}"
-```
-
-<img width="320" height="240" alt="control stack-chan motor" src="https://github.com/user-attachments/assets/99937d38-68b9-4965-a578-3f4c2f4793d5" />
-
-<br>  
-<br>
-
-Get the current joint angles (10 Hz).
-
-```sh
 ros2 topic echo /stackchan/joint_states
 ```
 
-```sh
-# output
-header:
-  stamp:
-    sec: 1780211663
-    nanosec: 838000000
-  frame_id: ''
-name:
-- yaw_joint
-- pitch_joint
-position:
-- 0.5009094953223726
-- 0.29845130209103027
-velocity: []
-effort: []
-```
-
 ### Camera
-Get the publish rate of the camera image topic.
+JPEG, 160 x 120.
 
 ```sh
 ros2 topic hz /stackchan/camera/image/compressed
-```
-
-View the camera image topic.
-
-```sh
 ros2 run rqt_image_view rqt_image_view
 ```
 
@@ -136,60 +110,23 @@ ros2 run rqt_image_view rqt_image_view
 <img width="333" height="306" alt="rqt_image_view stack-chan camera image topic" src="https://github.com/user-attachments/assets/4afe2943-41d6-4adb-8c30-17c6df6c2393" />
 
 ### Battery
-Get the battery voltage, remaining level (%), and charging status.
+`voltage` [V], `current` [A], `percentage` [0.0-1.0], `power_supply_status` (1: charging, 2: discharging).
 
 ```sh
 ros2 topic echo /stackchan/battery_state
 ```
 
-```sh
-# output
-header:
-  stamp:
-    sec: 1778980809
-    nanosec: 0
-  frame_id: base_link
-voltage: 4.205999851226807  # Voltage [V]
-temperature: 0.0
-current: 0.0
-charge: 0.0
-capacity: 0.0
-design_capacity: 0.0
-percentage: 0.9300000071525574  # remaining level [0.0-1.0]
-power_supply_status: 1  # 1:charging, 2:discharging
-power_supply_health: 0
-power_supply_technology: 0
-present: false
-cell_voltage: []
-cell_temperature: []
-location: ''
-serial_number: ''
-```
-
 ### Touch
-Get touch sensor values.
+`data` is `[front, middle, back]`. Each value is 0 (no touch) or 1-3 (intensity).
 
 ```sh
 ros2 topic echo /stackchan/touch_intensities
 ```
 
-```sh
-# output
----
-layout:
-  dim: []
-  data_offset: 0
-data:
-- 3  # Front
-- 0  # Middle
-- 1  # Back
----
-```
-
 <img width="341" height="192" alt="stack-chan_micro-ros_arduino_touch" src="https://github.com/user-attachments/assets/5ee1efc9-c074-4b66-aa36-51406f1d2235" />
 
 ### IMU
-Get the IMU data.
+`linear_acceleration` [m/s^2] and `angular_velocity` [rad/s], `frame_id: imu_link`.
 
 > **Note1:**
 >  M5StackChan(X-right, Y-down, Z-backward)
@@ -202,58 +139,29 @@ Get the IMU data.
 ros2 topic echo /stackchan/imu
 ```
 
-```sh
-# output
-header:
-  stamp:
-    sec: 1780211663
-    nanosec: 838000000
-  frame_id: imu_link
-orientation:
-...
-orientation_covariance:
-...
-angular_velocity:
-  x: 0.059654808417774936
-  y: 0.08096009713840883
-  z: -0.0010652644360316954
-angular_velocity_covariance:
-...
-linear_acceleration:
-  x: -0.3208230137825012
-  y: 0.1412578970193863
-  z: -9.68694019317627
-linear_acceleration_covariance:
-...
-```
-
 <img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
 ### Speaker
 Play a tone with `[frequency Hz, duration ms]` (non-blocking). The volume is set by `SPEAKER_VOLUME` in `config.h`.
+Range: 0-20000 Hz, 0-10000 ms (out of range is ignored with `[WARN]`). Frequency `0` stops the sound.
 
 ```sh
 ros2 topic pub --once /stackchan/tone std_msgs/msg/Float32MultiArray "{data: [440.0, 500.0]}"
 ```
 
-- Range: frequency 0-20000 Hz, duration 0-10000 ms. Out-of-range commands are ignored with `[WARN]`.
-- Frequency `0` stops the sound: `"{data: [0.0, 0.0]}"`
-
-## Note
-- You can check the logs in the Arduino IDE Serial Monitor (115200 baud).
-
 ## File Structure
 ```
 stack-chan_micro-ros_arduino.ino  # main: Wi-Fi, micro-ROS node, executor
-config.h.example                  # copy to config.h (Wi-Fi, agent, topic/log on/off)
+config.h.example                  # copy to config.h
 src/
+  motor.h/.cpp        # joint_states, joint_commands
+  camera.h/.cpp       # camera/image/compressed
+  battery.h/.cpp      # battery_state
+  touch.h/.cpp        # touch_intensities
+  imu.h/.cpp          # imu
+  speaker.h/.cpp      # tone
   display_log.h/.cpp  # logs to Serial and the screen
-  motor.h/.cpp        # /stackchan/joint_states, /stackchan/joint_commands
-  camera.h/.cpp       # /stackchan/camera/image/compressed
-  battery.h/.cpp      # /stackchan/battery_state
-  touch.h/.cpp        # /stackchan/touch_intensities
-  imu.h/.cpp          # /stackchan/imu
-  speaker.h/.cpp      # /stackchan/tone
+  ros_utils.h/.cpp    # stamp, string and publish helpers
 ```
 
 ## Format

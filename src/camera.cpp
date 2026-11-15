@@ -3,17 +3,13 @@
 
 #include "camera.h"
 
-#include <Arduino.h>
 #include <M5StackChan.h>
-#include <micro_ros_arduino.h>
-#include <rcl/rcl.h>
-#include <rclc/executor.h>
-#include <rclc/rclc.h>
 #include <sensor_msgs/msg/compressed_image.h>
 
 #include "display_log.h"
 #include "esp_camera.h"
 #include "img_converters.h"
+#include "ros_utils.h"
 
 static rcl_publisher_t camera_pub;
 static sensor_msgs__msg__CompressedImage image_msg;
@@ -39,11 +35,8 @@ static camera_config_t camera_config = {
     .xclk_freq_hz = 20000000,
     .ledc_timer = LEDC_TIMER_0,
     .ledc_channel = LEDC_CHANNEL_0,
-    // image setup
-    .pixel_format = PIXFORMAT_RGB565,  // color
-    // .pixel_format = PIXFORMAT_GRAYSCALE,  // grayscale
+    .pixel_format = PIXFORMAT_RGB565,
     .frame_size = FRAMESIZE_QQVGA,  // 160 x 120
-    // .frame_size   = FRAMESIZE_96X96,  // 96 x 96
     .jpeg_quality = 0,
     .fb_count = 1,
     .fb_location = CAMERA_FB_IN_PSRAM,
@@ -62,48 +55,33 @@ bool init_camera_hardware() {
   return true;
 }
 
-// publish camera image
+// capture, convert to JPEG and publish
 static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer != NULL) {
-    camera_fb_t *fb = esp_camera_fb_get();
-    if (fb) {
-      uint8_t *out_jpg = NULL;
-      size_t out_jpg_len = 0;
-      bool jpeg_converted =
-          fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, 30, &out_jpg, &out_jpg_len);
-      if (jpeg_converted && out_jpg != NULL) {
-        int64_t time = rmw_uros_epoch_millis();
-        image_msg.header.stamp.sec = (int32_t)(time / 1000);
-        image_msg.header.stamp.nanosec = (uint32_t)((time % 1000) * 1000000);
-        image_msg.format.data = (char *)"jpeg";
-        image_msg.format.size = 4;
-        image_msg.data.data = out_jpg;
-        image_msg.data.size = out_jpg_len;
-        image_msg.data.capacity = out_jpg_len;
-        rcl_publish(&camera_pub, &image_msg, NULL);
-        free(out_jpg);
-      } else {
-        // limit to once per second so the screen is not flooded
-        static uint32_t last_error_ms = 0;
-        if (millis() - last_error_ms > 1000) {
-          display_log("[ERROR] Camera: JPEG conversion failed");
-          last_error_ms = millis();
-        }
-      }
-      esp_camera_fb_return(fb);
-    }
+  if (timer == NULL) return;
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (fb == NULL) return;
+  uint8_t *jpg = NULL;
+  size_t jpg_len = 0;
+  if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, 30, &jpg, &jpg_len)) {
+    image_msg.data.data = jpg;
+    image_msg.data.size = jpg_len;
+    image_msg.data.capacity = jpg_len;
+    set_stamp(&image_msg.header.stamp);
+    publish(&camera_pub, &image_msg, "Camera");
+  } else {
+    static uint32_t last_error_ms = 0;
+    if (every_ms(&last_error_ms, 1000)) display_log("[ERROR] Camera: JPEG conversion failed");
   }
+  free(jpg);
+  esp_camera_fb_return(fb);
 }
 
 void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  // init publisher
   rclc_publisher_init_default(&camera_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
                               "stackchan/camera/image/compressed");
-  image_msg.header.frame_id.data = (char *)"camera_link";
-  image_msg.header.frame_id.size = strlen("camera_link");
-  image_msg.header.frame_id.capacity = image_msg.header.frame_id.size + 1;
-  // timer setup
+  set_string(&image_msg.header.frame_id, "camera_link");
+  set_string(&image_msg.format, "jpeg");
   rclc_timer_init_default(&camera_timer, support, RCL_MS_TO_NS(200), camera_timer_callback);
   rclc_executor_add_timer(executor, &camera_timer);
   display_log("Camera: ready");

@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
-#include <rcl/error_handling.h>
 #include <rcl/rcl.h>
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -12,6 +11,7 @@
 #include "src/display_log.h"
 #include "src/imu.h"
 #include "src/motor.h"
+#include "src/ros_utils.h"
 #include "src/speaker.h"
 #include "src/touch.h"
 
@@ -83,12 +83,8 @@ void loop() {
   if (num_handles > 0) {
     rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
     if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
-      // limit to once per second so the screen is not flooded
       static uint32_t last_error_ms = 0;
-      if (millis() - last_error_ms > 1000) {
-        display_log("[ERROR] Executor spin failed: %d", (int)ret);
-        last_error_ms = millis();
-      }
+      if (every_ms(&last_error_ms, 1000)) display_log("[ERROR] Executor spin failed: %d", (int)ret);
       delay(100);
     }
   }

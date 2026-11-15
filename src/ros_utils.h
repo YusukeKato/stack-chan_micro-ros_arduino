@@ -1,0 +1,20 @@
+#ifndef STACKCHAN_ROS_UTILS_H
+#define STACKCHAN_ROS_UTILS_H
+
+#include <builtin_interfaces/msg/time.h>
+#include <rcl/rcl.h>
+#include <rosidl_runtime_c/string.h>
+
+// Set a stamp from the clock synchronized with the micro-ROS Agent.
+void set_stamp(builtin_interfaces__msg__Time *stamp);
+
+// Point a message string at a constant C string (no allocation).
+void set_string(rosidl_runtime_c__String *str, const char *value);
+
+// rcl_publish() that logs failures as [WARN] (at most once per second).
+void publish(rcl_publisher_t *publisher, const void *msg, const char *name);
+
+// Returns true at most once per period_ms for each last_ms (for rate-limited logs).
+bool every_ms(uint32_t *last_ms, uint32_t period_ms);
+
+#endif  // STACKCHAN_ROS_UTILS_H
