@@ -66,8 +66,6 @@ The screen shows:
 
 The scrolling log lines are always printed to Serial too (the fixed lines are screen only).
 
-To turn off the screen log, set `ENABLE_DISPLAY_LOG = false` in `config.h`.
-
 ### Motor
 Control the motor by specifying the angle.
 
