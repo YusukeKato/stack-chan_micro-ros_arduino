@@ -67,7 +67,7 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     image_msg.data.size = jpg_len;
     image_msg.data.capacity = jpg_len;
     set_stamp(&image_msg.header.stamp);
-    publish(&camera_pub, &image_msg, "Camera");
+    publish(&camera_pub, &image_msg);
   } else {
     static uint32_t last_error_ms = 0;
     if (every_ms(&last_error_ms, 1000)) display_log("[ERROR] Camera: JPEG conversion failed");

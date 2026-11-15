@@ -4,8 +4,6 @@
 #include <rmw_microros/rmw_microros.h>
 #include <string.h>
 
-#include "display_log.h"
-
 void set_stamp(builtin_interfaces__msg__Time *stamp) {
   int64_t ms = rmw_uros_epoch_millis();
   stamp->sec = (int32_t)(ms / 1000);
@@ -18,12 +16,8 @@ void set_string(rosidl_runtime_c__String *str, const char *value) {
   str->capacity = str->size + 1;
 }
 
-void publish(rcl_publisher_t *publisher, const void *msg, const char *name) {
-  rcl_ret_t ret = rcl_publish(publisher, msg, NULL);
-  static uint32_t last_error_ms = 0;
-  if (ret != RCL_RET_OK && every_ms(&last_error_ms, 1000)) {
-    display_log("[WARN] %s: publish failed (%d)", name, (int)ret);
-  }
+bool publish(rcl_publisher_t *publisher, const void *msg) {
+  return rcl_publish(publisher, msg, NULL) == RCL_RET_OK;
 }
 
 bool every_ms(uint32_t *last_ms, uint32_t period_ms) {

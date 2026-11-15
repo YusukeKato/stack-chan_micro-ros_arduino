@@ -15,7 +15,7 @@ static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer == NULL) return;
   auto intensities = M5StackChan.TouchSensor.getIntensities();
   for (int i = 0; i < 3; i++) touch_data[i] = intensities[i];
-  publish(&touch_pub, &touch_msg, "Touch");
+  publish(&touch_pub, &touch_msg);
   display_status(STATUS_TOUCH, "Touch  front %d  middle %d  back %d", (int)touch_data[0],
                  (int)touch_data[1], (int)touch_data[2]);
 }

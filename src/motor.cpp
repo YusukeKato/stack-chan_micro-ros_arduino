@@ -105,7 +105,7 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
                               M5StackChan.Motion.getCurrentPitchAngle()};
   for (int j = 0; j < JOINT_COUNT; j++) pub_position[j] = servo_to_rad(current[j]);
   set_stamp(&pub_msg.header.stamp);
-  publish(&joint_pub, &pub_msg, "Motor");
+  publish(&joint_pub, &pub_msg);
   // [0.1 deg] -> [deg]
   display_status(STATUS_JOINT, "Joint  yaw %.1f  pitch %.1f deg", current[YAW] / 10.0f,
                  current[PITCH] / 10.0f);

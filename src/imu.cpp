@@ -26,7 +26,7 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   imu_msg.angular_velocity.z = data.gyro.y * DEG_TO_RAD;
 
   set_stamp(&imu_msg.header.stamp);
-  publish(&imu_pub, &imu_msg, "IMU");
+  publish(&imu_pub, &imu_msg);
   display_status(STATUS_IMU_ACCEL, "IMU accel  x %.1f  y %.1f  z %.1f m/s^2",
                  imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y,
                  imu_msg.linear_acceleration.z);

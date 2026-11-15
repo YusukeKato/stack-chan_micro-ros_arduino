@@ -11,8 +11,8 @@ void set_stamp(builtin_interfaces__msg__Time *stamp);
 // Point a message string at a constant C string (no allocation).
 void set_string(rosidl_runtime_c__String *str, const char *value);
 
-// rcl_publish() that logs failures as [WARN] (at most once per second).
-void publish(rcl_publisher_t *publisher, const void *msg, const char *name);
+// rcl_publish(). Returns true on success.
+bool publish(rcl_publisher_t *publisher, const void *msg);
 
 // Returns true at most once per period_ms for each last_ms (for rate-limited logs).
 bool every_ms(uint32_t *last_ms, uint32_t period_ms);

@@ -34,7 +34,7 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   }
 
   set_stamp(&battery_msg.header.stamp);
-  publish(&battery_pub, &battery_msg, "Battery");
+  publish(&battery_pub, &battery_msg);
   display_status(STATUS_BATTERY, "Battery  %d%%  %.2f V  %s", (int)level, battery_msg.voltage,
                  status);
 }
