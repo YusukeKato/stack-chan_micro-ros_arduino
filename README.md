@@ -102,7 +102,7 @@ ros2 topic echo /stackchan/joint_states
 
 ### Camera
 JPEG, 160 x 120, 5 Hz. Settings are at the top of `src/camera.cpp`.
-A frame must fit in one micro-ROS message (about 2 KB), so larger frame sizes (e.g. 320 x 240) or high JPEG quality are not sent (the Camera line on the screen shows the actual rate).
+A frame must fit in one micro-ROS message (about 2 KB). Frames near that limit broke the micro-ROS Agent, so frames larger than 1500 bytes are dropped (`[WARN] Camera: frame ... dropped`). The Camera line on the screen shows the actual rate and size.
 
 ```sh
 ros2 topic hz /stackchan/camera/image/compressed

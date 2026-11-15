@@ -4,6 +4,7 @@
 #include "camera.h"
 
 #include <M5StackChan.h>
+#include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/compressed_image.h>
 
 #include "display_log.h"
@@ -12,12 +13,15 @@
 #include "ros_utils.h"
 
 // Tuning
-// - Frame size is limited by micro-ROS: one message must fit in the output buffer
+// - Frame size is limited by micro-ROS: one message must fit in the reliable output stream
 //   (UDP MTU 512 B x history 4 = about 2 KB in micro_ros_arduino 3.0.0-iron).
-//   QQVGA (160 x 120) JPEG fits; QVGA (320 x 240) does not.
+//   Frames close to that limit (about 1.9 KB) produced broken fragments that crashed the
+//   micro-ROS Agent, so frames larger than MAX_JPEG_BYTES are dropped.
 // - Higher JPEG_QUALITY = larger frames. Check the rate and size on the screen (Camera line).
-static const int CAMERA_PERIOD_MS = 200;  // 5 Hz
-static const int JPEG_QUALITY = 30;       // 1-100
+static const int CAMERA_PERIOD_MS = 200;    // 5 Hz
+static const int JPEG_QUALITY = 15;         // 1-100
+static const size_t MAX_JPEG_BYTES = 1500;  // drop larger frames
+static const int PUBLISH_TIMEOUT_MS = 50;   // max wait for delivery (default 1000 blocks loop)
 
 static rcl_publisher_t camera_pub;
 static sensor_msgs__msg__CompressedImage image_msg;
@@ -78,7 +82,15 @@ void update_camera() {
     image_msg.data.capacity = jpg_len;
     set_stamp(&image_msg.header.stamp);
     static int published = 0;
-    if (publish(&camera_pub, &image_msg)) published++;
+    if (jpg_len > MAX_JPEG_BYTES) {
+      static uint32_t last_warn_ms = 0;
+      if (every_ms(&last_warn_ms, 5000)) {
+        display_log("[WARN] Camera: frame %u B > %u B, dropped", (unsigned)jpg_len,
+                    (unsigned)MAX_JPEG_BYTES);
+      }
+    } else if (publish(&camera_pub, &image_msg)) {
+      published++;
+    }
     // show publish rate and frame size once per second
     static uint32_t last_status_ms = 0;
     static uint32_t start_ms = millis();
@@ -101,6 +113,8 @@ void setup_camera(rcl_node_t *node) {
       &camera_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
       "stackchan/camera/image/compressed");
   if (!check(ret, "Camera publisher")) return;
+  rmw_uros_set_publisher_session_timeout(rcl_publisher_get_rmw_handle(&camera_pub),
+                                         PUBLISH_TIMEOUT_MS);
   set_string(&image_msg.header.frame_id, "camera_link");
   set_string(&image_msg.format, "jpeg");
   display_log("Camera: ready");
