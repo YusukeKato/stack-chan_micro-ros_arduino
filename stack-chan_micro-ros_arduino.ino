@@ -24,7 +24,6 @@ extern bool init_camera_hardware();
 extern void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
-extern void setup_speech(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 extern void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor);
 
@@ -37,7 +36,6 @@ void setup() {
   // init stack-chan
   M5StackChan.begin();
   M5StackChan.Display().setTextSize(2);
-  M5.Speaker.setVolume(255);  // max: 255
   M5StackChan.Motion.goHome();
   delay(1000);
 
@@ -72,7 +70,6 @@ void setup() {
   if (ENABLE_MOTOR) num_handles += 2;    // pub(timer), sub
   if (ENABLE_CAMERA) num_handles += 1;   // pub(timer)
   if (ENABLE_BATTERY) num_handles += 1;  // pub(timer)
-  if (ENABLE_SPEECH) num_handles += 1;   // sub
   if (ENABLE_TOUCH) num_handles += 1;    // pub(timer)
   if (ENABLE_IMU) num_handles += 1;      // pub(timer)
 
@@ -81,7 +78,6 @@ void setup() {
     if (ENABLE_MOTOR) setup_motor(&node, &support, &executor);
     if (ENABLE_CAMERA) setup_camera(&node, &support, &executor);
     if (ENABLE_BATTERY) setup_battery(&node, &support, &executor);
-    if (ENABLE_SPEECH) setup_speech(&node, &support, &executor);
     if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
     if (ENABLE_IMU) setup_imu(&node, &support, &executor);
   } else {
