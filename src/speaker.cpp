@@ -1,11 +1,6 @@
 #include "speaker.h"
 
-#include <Arduino.h>
 #include <M5StackChan.h>
-#include <micro_ros_arduino.h>
-#include <rcl/rcl.h>
-#include <rclc/executor.h>
-#include <rclc/rclc.h>
 #include <std_msgs/msg/float32_multi_array.h>
 
 #include "display_log.h"

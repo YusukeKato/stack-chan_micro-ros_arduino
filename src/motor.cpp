@@ -2,13 +2,10 @@
 
 #include <Arduino.h>
 #include <M5StackChan.h>
-#include <micro_ros_arduino.h>
-#include <rcl/rcl.h>
-#include <rclc/executor.h>
-#include <rclc/rclc.h>
 #include <sensor_msgs/msg/joint_state.h>
 
 #include "display_log.h"
+#include "ros_utils.h"
 
 // Joints: yaw (positive = left), pitch (positive = up). Angles in ROS are [rad].
 // M5StackChan uses [0.1 deg]: yaw -1280..1280, pitch 0..900.
@@ -103,20 +100,15 @@ static void joint_subscription_callback(const void *msgin) {
 
 // publish current joint angles [rad]
 static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer != NULL) {
-    int current[JOINT_COUNT] = {M5StackChan.Motion.getCurrentYawAngle(),
-                                M5StackChan.Motion.getCurrentPitchAngle()};
-    for (int j = 0; j < JOINT_COUNT; j++) {
-      pub_position[j] = servo_to_rad(current[j]);
-    }
-    int64_t time = rmw_uros_epoch_millis();
-    pub_msg.header.stamp.sec = (int32_t)(time / 1000);
-    pub_msg.header.stamp.nanosec = (uint32_t)((time % 1000) * 1000000);
-    rcl_publish(&joint_pub, &pub_msg, NULL);
-    // [0.1 deg] -> [deg]
-    display_status(STATUS_JOINT, "Joint  yaw %.1f  pitch %.1f deg", current[YAW] / 10.0f,
-                   current[PITCH] / 10.0f);
-  }
+  if (timer == NULL) return;
+  int current[JOINT_COUNT] = {M5StackChan.Motion.getCurrentYawAngle(),
+                              M5StackChan.Motion.getCurrentPitchAngle()};
+  for (int j = 0; j < JOINT_COUNT; j++) pub_position[j] = servo_to_rad(current[j]);
+  set_stamp(&pub_msg.header.stamp);
+  publish(&joint_pub, &pub_msg);
+  // [0.1 deg] -> [deg]
+  display_status(STATUS_JOINT, "Joint  yaw %.1f  pitch %.1f deg", current[YAW] / 10.0f,
+                 current[PITCH] / 10.0f);
 }
 
 void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
@@ -130,14 +122,8 @@ void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
                                  "stackchan/joint_commands");
 
   // publish msg buffer setup (velocity/effort are empty)
-  for (int j = 0; j < JOINT_COUNT; j++) {
-    pub_names[j].data = (char *)JOINT_NAMES[j];
-    pub_names[j].size = strlen(JOINT_NAMES[j]);
-    pub_names[j].capacity = pub_names[j].size + 1;
-  }
-  pub_msg.header.frame_id.data = (char *)"";
-  pub_msg.header.frame_id.size = 0;
-  pub_msg.header.frame_id.capacity = 1;
+  for (int j = 0; j < JOINT_COUNT; j++) set_string(&pub_names[j], JOINT_NAMES[j]);
+  set_string(&pub_msg.header.frame_id, "");
   pub_msg.name.data = pub_names;
   pub_msg.name.size = JOINT_COUNT;
   pub_msg.name.capacity = JOINT_COUNT;
