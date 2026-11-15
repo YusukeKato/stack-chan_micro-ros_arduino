@@ -229,6 +229,16 @@ linear_acceleration_covariance:
 
 <img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
+### Speaker
+Play a tone with `[frequency Hz, duration ms]` (non-blocking). The volume is set by `SPEAKER_VOLUME` in `config.h`.
+
+```sh
+ros2 topic pub --once /stackchan/tone std_msgs/msg/Float32MultiArray "{data: [440.0, 500.0]}"
+```
+
+- Range: frequency 0-20000 Hz, duration 0-10000 ms. Out-of-range commands are ignored with `[WARN]`.
+- Frequency `0` stops the sound: `"{data: [0.0, 0.0]}"`
+
 ## Note
 - You can check the logs in the Arduino IDE Serial Monitor (115200 baud).
 
@@ -243,6 +253,7 @@ src/
   battery.h/.cpp      # /stackchan/battery_state
   touch.h/.cpp        # /stackchan/touch_intensities
   imu.h/.cpp          # /stackchan/imu
+  speaker.h/.cpp      # /stackchan/tone
 ```
 
 ## Format

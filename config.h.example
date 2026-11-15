@@ -15,6 +15,10 @@ const bool ENABLE_CAMERA = true;
 const bool ENABLE_BATTERY = true;
 const bool ENABLE_TOUCH = true;
 const bool ENABLE_IMU = true;
+const bool ENABLE_SPEAKER = true;
+
+// speaker volume (0-255)
+const uint8_t SPEAKER_VOLUME = 128;
 
 // show logs on the screen (Serial log is always on)
 const bool ENABLE_DISPLAY_LOG = true;
