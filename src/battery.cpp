@@ -1,6 +1,8 @@
 // reference:
 // https://docs.m5stack.com/ja/arduino/stackchan/battery
 
+#include "battery.h"
+
 #include <Arduino.h>
 #include <Avatar.h>
 #include <M5StackChan.h>
@@ -12,12 +14,12 @@
 
 extern m5avatar::Avatar avatar;
 
-rcl_publisher_t battery_pub;
-sensor_msgs__msg__BatteryState battery_msg;
-rcl_timer_t battery_timer;
+static rcl_publisher_t battery_pub;
+static sensor_msgs__msg__BatteryState battery_msg;
+static rcl_timer_t battery_timer;
 
 // publish voltage and current
-void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     // get voltage and current
     int32_t vol_mv = M5.Power.getBatteryVoltage();  // [mV]

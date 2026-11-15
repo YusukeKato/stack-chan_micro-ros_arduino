@@ -206,7 +206,19 @@ linear_acceleration_covariance:
 ## Note
 - You can check the debug logs in the Arduino IDE Serial Monitor.
 
+## File Structure
+```
+stack-chan_micro-ros_arduino.ino  # main: Wi-Fi, micro-ROS node, executor
+config.h.example                  # copy to config.h (Wi-Fi, agent, topic on/off)
+src/
+  motor.h/.cpp    # /stackchan/joint_states, /stackchan/joint_commands
+  camera.h/.cpp   # /stackchan/camera/image/compressed
+  battery.h/.cpp  # /stackchan/battery_state
+  touch.h/.cpp    # /stackchan/touch_intensities
+  imu.h/.cpp      # /stackchan/imu
+```
+
 ## Format
 ```sh
-clang-format -i -style=file *.ino *.h
+clang-format -i -style=file *.ino src/*.cpp src/*.h
 ```

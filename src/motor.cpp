@@ -1,3 +1,5 @@
+#include "motor.h"
+
 #include <Arduino.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
@@ -6,16 +8,16 @@
 #include <rclc/rclc.h>
 #include <std_msgs/msg/int32_multi_array.h>
 
-rcl_publisher_t angle_pub;
-rcl_subscription_t angle_sub;
-std_msgs__msg__Int32MultiArray pub_msg;
-std_msgs__msg__Int32MultiArray sub_msg;
-int32_t pub_data[2] = {0, 0};
-int32_t sub_data[2] = {0, 0};
-rcl_timer_t motor_timer;
+static rcl_publisher_t angle_pub;
+static rcl_subscription_t angle_sub;
+static std_msgs__msg__Int32MultiArray pub_msg;
+static std_msgs__msg__Int32MultiArray sub_msg;
+static int32_t pub_data[2] = {0, 0};
+static int32_t sub_data[2] = {0, 0};
+static rcl_timer_t motor_timer;
 
 // subscribe target angle & move
-void angle_subscription_callback(const void *msgin) {
+static void angle_subscription_callback(const void *msgin) {
   const std_msgs__msg__Int32MultiArray *msg = (const std_msgs__msg__Int32MultiArray *)msgin;
   if (msg->data.size >= 2) {
     int32_t target_yaw = msg->data.data[0];
@@ -31,7 +33,7 @@ void angle_subscription_callback(const void *msgin) {
 }
 
 // publish current angle
-void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
+static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
     int32_t current_yaw = M5StackChan.Motion.getCurrentXAngle();
     int32_t current_pitch = M5StackChan.Motion.getCurrentYAngle();
