@@ -1,7 +1,6 @@
 #include "touch.h"
 
 #include <Arduino.h>
-#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
@@ -9,15 +8,12 @@
 #include <rclc/rclc.h>
 #include <std_msgs/msg/int32_multi_array.h>
 
-extern m5avatar::Avatar avatar;
+#include "display_log.h"
 
 static rcl_publisher_t touch_pub;
 static std_msgs__msg__Int32MultiArray touch_msg;
 static int32_t touch_data[3] = {0, 0, 0};
 static rcl_timer_t touch_timer;
-
-static uint32_t last_touch_time = 0;
-static bool is_expression_changed = false;
 
 static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   if (timer != NULL) {
@@ -27,21 +23,12 @@ static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     touch_msg.data.data[1] = intensities[1];
     touch_msg.data.data[2] = intensities[2];
     rcl_publish(&touch_pub, &touch_msg, NULL);
-
-    if (M5StackChan.TouchSensor.wasClicked()) {
-      avatar.setExpression(m5avatar::Expression::Happy);
-      last_touch_time = millis();
-      is_expression_changed = true;
-    }
-    if (is_expression_changed && (millis() - last_touch_time > 3000)) {
-      avatar.setExpression(m5avatar::Expression::Neutral);
-      is_expression_changed = false;
-    }
+    display_status(STATUS_TOUCH, "Touch  front %d  middle %d  back %d", (int)intensities[0],
+                   (int)intensities[1], (int)intensities[2]);
   }
 }
 
 void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  Serial.println("[DEBUG] Registering Touch Node...");
   rclc_publisher_init_default(&touch_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
                               "stackchan/touch_intensities");
@@ -50,5 +37,5 @@ void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
   touch_msg.data.data = touch_data;
   rclc_timer_init_default(&touch_timer, support, RCL_MS_TO_NS(100), touch_timer_callback);
   rclc_executor_add_timer(executor, &touch_timer);
-  Serial.println("[DEBUG] Touch Node Registered!");
+  display_log("Touch: ready");
 }

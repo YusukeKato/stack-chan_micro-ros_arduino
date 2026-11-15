@@ -4,7 +4,6 @@
 #include "battery.h"
 
 #include <Arduino.h>
-#include <Avatar.h>
 #include <M5StackChan.h>
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
@@ -12,7 +11,7 @@
 #include <rclc/rclc.h>
 #include <sensor_msgs/msg/battery_state.h>
 
-extern m5avatar::Avatar avatar;
+#include "display_log.h"
 
 static rcl_publisher_t battery_pub;
 static sensor_msgs__msg__BatteryState battery_msg;
@@ -48,15 +47,18 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     battery_msg.header.frame_id.capacity = battery_msg.header.frame_id.size + 1;
     // publish
     rcl_publish(&battery_pub, &battery_msg, NULL);
-    // debug
-    static char speech_buf[64];
-    snprintf(speech_buf, sizeof(speech_buf), "Battery : %d%%", level);
-    avatar.setSpeechText(speech_buf);
+    const char *status = "unknown";
+    if (charge_state == m5::Power_Class::is_charging) {
+      status = "charging";
+    } else if (charge_state == m5::Power_Class::is_discharging) {
+      status = "discharging";
+    }
+    display_status(STATUS_BATTERY, "Battery  %d%%  %.2f V  %s", (int)level, battery_msg.voltage,
+                   status);
   }
 }
 
 void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  Serial.println("[DEBUG] Registering Battery Node...");
   // publisher
   rclc_publisher_init_default(&battery_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
@@ -65,5 +67,5 @@ void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *e
   rclc_timer_init_default(&battery_timer, support, RCL_MS_TO_NS(1000), battery_timer_callback);
   rclc_executor_add_timer(executor, &battery_timer);
 
-  Serial.println("[DEBUG] Battery Node Registered!");
+  display_log("Battery: ready");
 }

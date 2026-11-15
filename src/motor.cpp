@@ -8,6 +8,8 @@
 #include <rclc/rclc.h>
 #include <std_msgs/msg/int32_multi_array.h>
 
+#include "display_log.h"
+
 static rcl_publisher_t angle_pub;
 static rcl_subscription_t angle_sub;
 static std_msgs__msg__Int32MultiArray pub_msg;
@@ -22,13 +24,12 @@ static void angle_subscription_callback(const void *msgin) {
   if (msg->data.size >= 2) {
     int32_t target_yaw = msg->data.data[0];
     int32_t target_pitch = msg->data.data[1];
-    Serial.printf("[DEBUG] Received joint_commands -> Yaw: %d, Pitch: %d\n", target_yaw,
-                  target_pitch);
+    display_log("Motor: cmd yaw %d pitch %d", (int)target_yaw, (int)target_pitch);
     target_yaw = max(-1280, min(1280, (int)target_yaw));
     target_pitch = max(0, min(900, (int)target_pitch));
     M5StackChan.Motion.move(target_yaw, target_pitch);
   } else {
-    Serial.println("[WARN] Received joint_commands with invalid data size!");
+    display_log("[WARN] Motor: joint_commands needs 2 values, got %u", (unsigned)msg->data.size);
   }
 }
 
@@ -40,11 +41,13 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     pub_msg.data.data[0] = current_yaw;
     pub_msg.data.data[1] = current_pitch;
     rcl_publish(&angle_pub, &pub_msg, NULL);
+    // [0.1 deg] -> [deg]
+    display_status(STATUS_JOINT, "Joint  yaw %.1f  pitch %.1f deg", current_yaw / 10.0f,
+                   current_pitch / 10.0f);
   }
 }
 
 void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  Serial.println("[DEBUG] Registering Motor Node...");
   // publisher
   rclc_publisher_init_default(&angle_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
@@ -65,5 +68,5 @@ void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
   rclc_executor_add_subscription(executor, &angle_sub, &sub_msg, &angle_subscription_callback,
                                  ON_NEW_DATA);
   rclc_executor_add_timer(executor, &motor_timer);
-  Serial.println("[DEBUG] Motor Node Registered!");
+  display_log("Motor: ready");
 }

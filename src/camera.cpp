@@ -11,6 +11,7 @@
 #include <rclc/rclc.h>
 #include <sensor_msgs/msg/compressed_image.h>
 
+#include "display_log.h"
 #include "esp_camera.h"
 #include "img_converters.h"
 
@@ -51,15 +52,13 @@ static camera_config_t camera_config = {
 };
 
 bool init_camera_hardware() {
-  Serial.println("[DEBUG] Initializing Camera Hardware...");
   camera_config.sccb_i2c_port = M5.In_I2C.getPort();
-  Serial.printf("[DEBUG] Shared I2C Port: %d\n", camera_config.sccb_i2c_port);
   esp_err_t err = esp_camera_init(&camera_config);
   if (err != ESP_OK) {
-    Serial.printf("[ERROR] Camera Init Failed! Error code: 0x%x\n", err);
+    display_log("[ERROR] Camera: init failed (0x%x)", err);
     return false;
   }
-  Serial.println("[DEBUG] Camera Hardware Init Success!");
+  display_log("Camera: hardware ready");
   return true;
 }
 
@@ -84,7 +83,12 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
         rcl_publish(&camera_pub, &image_msg, NULL);
         free(out_jpg);
       } else {
-        Serial.println("[ERROR] JPEG conversion failed!");
+        // limit to once per second so the screen is not flooded
+        static uint32_t last_error_ms = 0;
+        if (millis() - last_error_ms > 1000) {
+          display_log("[ERROR] Camera: JPEG conversion failed");
+          last_error_ms = millis();
+        }
       }
       esp_camera_fb_return(fb);
     }
@@ -92,7 +96,6 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  Serial.println("[DEBUG] Registering Camera Node...");
   // init publisher
   rclc_publisher_init_default(&camera_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
@@ -103,5 +106,5 @@ void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *ex
   // timer setup
   rclc_timer_init_default(&camera_timer, support, RCL_MS_TO_NS(200), camera_timer_callback);
   rclc_executor_add_timer(executor, &camera_timer);
-  Serial.println("[DEBUG] Camera Node Registered!");
+  display_log("Camera: ready");
 }

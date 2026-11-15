@@ -16,4 +16,7 @@ const bool ENABLE_BATTERY = true;
 const bool ENABLE_TOUCH = true;
 const bool ENABLE_IMU = true;
 
+// show logs on the screen (Serial log is always on)
+const bool ENABLE_DISPLAY_LOG = true;
+
 #endif
