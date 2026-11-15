@@ -4,6 +4,7 @@
 #include "camera.h"
 
 #include <M5StackChan.h>
+#include <rmw_microros/rmw_microros.h>
 #include <sensor_msgs/msg/compressed_image.h>
 
 #include "display_log.h"
@@ -12,16 +13,20 @@
 #include "ros_utils.h"
 
 // Tuning
-// - Frame size is limited by micro-ROS: one message must fit in the output buffer
-//   (UDP MTU 512 B x history 4 = about 2 KB in micro_ros_arduino 3.0.0-iron).
-//   QQVGA (160 x 120) JPEG fits; QVGA (320 x 240) does not.
-// - Higher JPEG_QUALITY = larger frames. Check the rate and size on the screen (Camera line).
+// - One frame must fit in the reliable output stream of micro_ros_arduino 3.0.0-iron
+//   (UDP MTU 512 B x history 4 = about 2 KB). Frames close to that limit (about 1.9 KB)
+//   produced broken fragments that crashed the micro-ROS Agent.
+// - JPEG size depends on the scene, so the quality is adjusted per frame to stay below
+//   MAX_JPEG_BYTES (between MIN_JPEG_QUALITY and MAX_JPEG_QUALITY). Larger frames are dropped.
+// - The screen shows the size and quality (Camera line). Check the rate with ros2 topic hz.
 static const int CAMERA_PERIOD_MS = 200;  // 5 Hz
-static const int JPEG_QUALITY = 30;       // 1-100
+static const int MAX_JPEG_QUALITY = 30;   // 1-100, higher = better and larger
+static const int MIN_JPEG_QUALITY = 5;
+static const size_t MAX_JPEG_BYTES = 1700;  // drop larger frames
+static const int PUBLISH_TIMEOUT_MS = 0;    // do not wait for delivery (1000 ms by default)
 
 static rcl_publisher_t camera_pub;
 static sensor_msgs__msg__CompressedImage image_msg;
-static rcl_timer_t camera_timer;
 
 static camera_config_t camera_config = {
     .pin_pwdn = -1,
@@ -66,28 +71,29 @@ bool init_camera_hardware() {
 }
 
 // capture, convert to JPEG and publish
-static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer == NULL) return;
+void update_camera() {
+  static uint32_t last_ms = 0;
+  if (!every_ms(&last_ms, CAMERA_PERIOD_MS)) return;
   camera_fb_t *fb = esp_camera_fb_get();
   if (fb == NULL) return;
+  static int quality = MAX_JPEG_QUALITY;
   uint8_t *jpg = NULL;
   size_t jpg_len = 0;
-  if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, JPEG_QUALITY, &jpg, &jpg_len)) {
-    image_msg.data.data = jpg;
-    image_msg.data.size = jpg_len;
-    image_msg.data.capacity = jpg_len;
-    set_stamp(&image_msg.header.stamp);
-    static int published = 0;
-    if (publish(&camera_pub, &image_msg)) published++;
-    // show publish rate and frame size once per second
-    static uint32_t last_status_ms = 0;
-    static uint32_t start_ms = millis();
-    if (every_ms(&last_status_ms, 1000)) {
-      float fps = published * 1000.0f / max(1UL, (unsigned long)(millis() - start_ms));
-      display_status(STATUS_CAMERA, "Camera  %.1f fps  %.1f KB", fps, jpg_len / 1024.0f);
-      published = 0;
-      start_ms = millis();
+  if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, quality, &jpg, &jpg_len)) {
+    if (jpg_len <= MAX_JPEG_BYTES) {
+      image_msg.data.data = jpg;
+      image_msg.data.size = jpg_len;
+      image_msg.data.capacity = jpg_len;
+      set_stamp(&image_msg.header.stamp);
+      publish(&camera_pub, &image_msg);  // false only means "not confirmed yet"
     }
+    // adjust quality for the next frame: down fast when too large, up slowly when small
+    if (jpg_len > MAX_JPEG_BYTES) {
+      quality = max(MIN_JPEG_QUALITY, quality - 5);
+    } else if (jpg_len < MAX_JPEG_BYTES * 3 / 4) {
+      quality = min(MAX_JPEG_QUALITY, quality + 1);
+    }
+    display_status(STATUS_CAMERA, "Camera  %.1f KB  q%d", jpg_len / 1024.0f, quality);
   } else {
     static uint32_t last_error_ms = 0;
     if (every_ms(&last_error_ms, 1000)) display_log("[ERROR] Camera: JPEG conversion failed");
@@ -96,14 +102,14 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   esp_camera_fb_return(fb);
 }
 
-void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  rclc_publisher_init_default(&camera_pub, node,
-                              ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
-                              "stackchan/camera/image/compressed");
+void setup_camera(rcl_node_t *node) {
+  rcl_ret_t ret = rclc_publisher_init_default(
+      &camera_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
+      "stackchan/camera/image/compressed");
+  if (!check(ret, "Camera publisher")) return;
+  rmw_uros_set_publisher_session_timeout(rcl_publisher_get_rmw_handle(&camera_pub),
+                                         PUBLISH_TIMEOUT_MS);
   set_string(&image_msg.header.frame_id, "camera_link");
   set_string(&image_msg.format, "jpeg");
-  rclc_timer_init_default(&camera_timer, support, RCL_MS_TO_NS(CAMERA_PERIOD_MS),
-                          camera_timer_callback);
-  rclc_executor_add_timer(executor, &camera_timer);
   display_log("Camera: ready");
 }

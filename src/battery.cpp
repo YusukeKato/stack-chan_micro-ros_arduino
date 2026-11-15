@@ -11,11 +11,11 @@
 
 static rcl_publisher_t battery_pub;
 static sensor_msgs__msg__BatteryState battery_msg;
-static rcl_timer_t battery_timer;
 
 // publish voltage, current, level and charge state
-static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer == NULL) return;
+void update_battery() {
+  static uint32_t last_ms = 0;
+  if (!every_ms(&last_ms, 1000)) return;
   int32_t level = M5.Power.getBatteryLevel();                    // [%]
   battery_msg.voltage = M5.Power.getBatteryVoltage() / 1000.0f;  // [mV] -> [V]
   battery_msg.current = M5.Power.getBatteryCurrent() / 1000.0f;  // [mA] -> [A]
@@ -39,13 +39,12 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
                  status);
 }
 
-void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
+void setup_battery(rcl_node_t *node) {
   // best effort: no delivery wait (reliable blocks up to 1 s per publish)
-  rclc_publisher_init_best_effort(&battery_pub, node,
-                                  ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
-                                  "stackchan/battery_state");
+  rcl_ret_t ret = rclc_publisher_init_best_effort(
+      &battery_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
+      "stackchan/battery_state");
+  if (!check(ret, "Battery publisher")) return;
   set_string(&battery_msg.header.frame_id, "base_link");
-  rclc_timer_init_default(&battery_timer, support, RCL_MS_TO_NS(1000), battery_timer_callback);
-  rclc_executor_add_timer(executor, &battery_timer);
   display_log("Battery: ready");
 }

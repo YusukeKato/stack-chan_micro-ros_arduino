@@ -9,10 +9,10 @@
 
 static rcl_publisher_t imu_pub;
 static sensor_msgs__msg__Imu imu_msg;
-static rcl_timer_t imu_timer;
 
-static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  if (timer == NULL) return;
+void update_imu() {
+  static uint32_t last_ms = 0;
+  if (!every_ms(&last_ms, 100)) return;
   M5.Imu.update();
   auto data = M5.Imu.getImuData();
 
@@ -40,14 +40,15 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
                  imu_msg.angular_velocity.z);
 }
 
-void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
+void setup_imu(rcl_node_t *node) {
   // best effort: no delivery wait (reliable blocks up to 1 s per publish)
-  rclc_publisher_init_best_effort(
-      &imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu), "stackchan/imu");
+  if (!check(
+          rclc_publisher_init_best_effort(
+              &imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu), "stackchan/imu"),
+          "IMU publisher"))
+    return;
   set_string(&imu_msg.header.frame_id, "imu_link");
   // no orientation estimate: tell subscribers to ignore orientation (sensor_msgs/Imu spec)
   imu_msg.orientation_covariance[0] = -1.0;
-  rclc_timer_init_default(&imu_timer, support, RCL_MS_TO_NS(100), imu_timer_callback);
-  rclc_executor_add_timer(executor, &imu_timer);
   display_log("IMU: ready");
 }
