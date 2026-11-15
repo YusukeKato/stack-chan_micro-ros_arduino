@@ -41,8 +41,9 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  rclc_publisher_init_default(&imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-                              "stackchan/imu");
+  // best effort: no delivery wait (reliable blocks up to 1 s per publish)
+  rclc_publisher_init_best_effort(
+      &imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu), "stackchan/imu");
   set_string(&imu_msg.header.frame_id, "imu_link");
   // no orientation estimate: tell subscribers to ignore orientation (sensor_msgs/Imu spec)
   imu_msg.orientation_covariance[0] = -1.0;

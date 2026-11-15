@@ -113,9 +113,10 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 
 void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
   // publisher
-  rclc_publisher_init_default(&joint_pub, node,
-                              ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
-                              "stackchan/joint_states");
+  // best effort: no delivery wait (reliable blocks up to 1 s per publish)
+  rclc_publisher_init_best_effort(&joint_pub, node,
+                                  ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),
+                                  "stackchan/joint_states");
   // subscriber
   rclc_subscription_init_default(&joint_sub, node,
                                  ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState),

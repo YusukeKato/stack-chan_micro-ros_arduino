@@ -7,15 +7,18 @@ It only bridges the hardware (motors, camera, sensors, speaker) to ROS 2 topics.
 ## Topics
 Node: `stackchan_node`
 
-| Topic | Type | Direction | Rate |
-|---|---|---|---|
-| `/stackchan/joint_states` | `sensor_msgs/msg/JointState` | publish | 10 Hz |
-| `/stackchan/joint_commands` | `sensor_msgs/msg/JointState` | subscribe | - |
-| `/stackchan/camera/image/compressed` | `sensor_msgs/msg/CompressedImage` | publish | 5 Hz |
-| `/stackchan/battery_state` | `sensor_msgs/msg/BatteryState` | publish | 1 Hz |
-| `/stackchan/touch_intensities` | `std_msgs/msg/Int32MultiArray` | publish | 10 Hz |
-| `/stackchan/imu` | `sensor_msgs/msg/Imu` | publish | 10 Hz |
-| `/stackchan/tone` | `std_msgs/msg/Float32MultiArray` | subscribe | - |
+| Topic | Type | Direction | Rate | QoS |
+|---|---|---|---|---|
+| `/stackchan/joint_states` | `sensor_msgs/msg/JointState` | publish | 10 Hz | best effort |
+| `/stackchan/joint_commands` | `sensor_msgs/msg/JointState` | subscribe | - | reliable |
+| `/stackchan/camera/image/compressed` | `sensor_msgs/msg/CompressedImage` | publish | 5 Hz | reliable |
+| `/stackchan/battery_state` | `sensor_msgs/msg/BatteryState` | publish | 1 Hz | best effort |
+| `/stackchan/touch_intensities` | `std_msgs/msg/Int32MultiArray` | publish | 10 Hz | best effort |
+| `/stackchan/imu` | `sensor_msgs/msg/Imu` | publish | 10 Hz | best effort |
+| `/stackchan/tone` | `std_msgs/msg/Float32MultiArray` | subscribe | - | reliable |
+
+Sensor topics are best effort so that publishing never waits for delivery. To subscribe from your own node, use a best effort QoS (e.g. `rclpy.qos.qos_profile_sensor_data`); a reliable subscriber receives nothing. `ros2 topic echo` / `hz` adapt automatically.
+The camera stays reliable because a frame is larger than one UDP packet (best effort cannot split it).
 
 Each feature can be turned on/off in `config.h`.
 

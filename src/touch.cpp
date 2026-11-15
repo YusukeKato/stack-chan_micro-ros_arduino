@@ -21,9 +21,10 @@ static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  rclc_publisher_init_default(&touch_pub, node,
-                              ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
-                              "stackchan/touch_intensities");
+  // best effort: no delivery wait (reliable blocks up to 1 s per publish)
+  rclc_publisher_init_best_effort(&touch_pub, node,
+                                  ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
+                                  "stackchan/touch_intensities");
   touch_msg.data.data = touch_data;
   touch_msg.data.size = 3;
   touch_msg.data.capacity = 3;
