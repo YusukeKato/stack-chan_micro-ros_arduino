@@ -16,10 +16,15 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
   M5.Imu.update();
   auto data = M5.Imu.getImuData();
 
+  // M5Unified axes (looking at the screen): X right, Y up, Z out of the screen.
+  // ROS axes (REP-103, robot's view): X forward, Y left, Z up.
+  // -> ROS (x, y, z) = M5 (z, x, y). Same mapping for accel and gyro.
+  // Accel is proper acceleration: about +9.8 m/s^2 on z when the head is level (REP-145).
+
   // [G] -> [m/s^2]
-  imu_msg.linear_acceleration.x = -data.accel.z * 9.80665f;
-  imu_msg.linear_acceleration.y = -data.accel.x * 9.80665f;
-  imu_msg.linear_acceleration.z = -data.accel.y * 9.80665f;
+  imu_msg.linear_acceleration.x = data.accel.z * 9.80665f;
+  imu_msg.linear_acceleration.y = data.accel.x * 9.80665f;
+  imu_msg.linear_acceleration.z = data.accel.y * 9.80665f;
   // [deg/s] -> [rad/s]
   imu_msg.angular_velocity.x = data.gyro.z * DEG_TO_RAD;
   imu_msg.angular_velocity.y = data.gyro.x * DEG_TO_RAD;
@@ -39,6 +44,8 @@ void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *execu
   rclc_publisher_init_default(&imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
                               "stackchan/imu");
   set_string(&imu_msg.header.frame_id, "imu_link");
+  // no orientation estimate: tell subscribers to ignore orientation (sensor_msgs/Imu spec)
+  imu_msg.orientation_covariance[0] = -1.0;
   rclc_timer_init_default(&imu_timer, support, RCL_MS_TO_NS(100), imu_timer_callback);
   rclc_executor_add_timer(executor, &imu_timer);
   display_log("IMU: ready");

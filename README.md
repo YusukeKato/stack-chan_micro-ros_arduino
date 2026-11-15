@@ -71,7 +71,7 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 - Lines 1-5 (fixed, updated in place; values are rounded to fit one line):
   - `Joint  yaw 12.3  pitch 45.0 deg`
   - `Battery  93%  4.21 V  charging`
-  - `IMU accel  x -0.3  y 0.1  z -9.7 m/s^2`
+  - `IMU accel  x -0.3  y 0.1  z 9.7 m/s^2`
   - `IMU gyro  x 0.1  y 0.1  z -0.0 rad/s`
   - `Touch  front 3  middle 0  back 1`
 - Line 6 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready features, received commands, and `[WARN]` / `[ERROR]` messages
@@ -126,20 +126,16 @@ ros2 topic echo /stackchan/touch_intensities
 <img width="341" height="192" alt="stack-chan_micro-ros_arduino_touch" src="https://github.com/user-attachments/assets/5ee1efc9-c074-4b66-aa36-51406f1d2235" />
 
 ### IMU
-`linear_acceleration` [m/s^2] and `angular_velocity` [rad/s], `frame_id: imu_link`.
+`linear_acceleration` [m/s^2] and `angular_velocity` [rad/s] in ROS axes (X: forward, Y: left, Z: up), `frame_id: imu_link`.
 
-> **Note1:**
->  M5StackChan(X-right, Y-down, Z-backward)
->  -> ROS 2(X-forward, Y-left, Z-up)
-
-> **Note2:**
-> Same axis mapping for linear and angular, but different sign inversions.
+- At rest with the head level, `linear_acceleration.z` is about +9.8 (gravity is measured upward, as in REP-145).
+- `orientation` is not estimated (`orientation_covariance[0] = -1`).
+- The IMU is in the head (CoreS3), so `imu_link` moves with `yaw_joint` / `pitch_joint`.
+- Conversion from M5Unified axes (looking at the screen: X right, Y up, Z out of the screen): ROS `(x, y, z)` = M5 `(z, x, y)`.
 
 ```sh
 ros2 topic echo /stackchan/imu
 ```
-
-<img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
 ### Speaker
 Play a tone with `[frequency Hz, duration ms]` (non-blocking). The volume is set by `SPEAKER_VOLUME` in `config.h`.
