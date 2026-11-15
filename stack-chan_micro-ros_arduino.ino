@@ -30,23 +30,23 @@ void setup() {
   // init stack-chan
   M5StackChan.begin();
   display_log_init(ENABLE_DISPLAY_LOG);
-  log_info("StackChan micro-ROS booting");
+  display_log("StackChan micro-ROS booting");
   M5StackChan.Motion.goHome();
   delay(1000);
 
   if (ENABLE_CAMERA) init_camera_hardware();  // logs the result
 
-  log_info("Wi-Fi: connecting to %s", ssid);
+  display_log("Wi-Fi: connecting to %s", ssid);
   set_microros_wifi_transports(ssid, password, agent_ip_address, agent_port);
-  log_info("Wi-Fi: connected, IP %s", WiFi.localIP().toString().c_str());
+  display_log("Wi-Fi: connected, IP %s", WiFi.localIP().toString().c_str());
   delay(2000);
 
-  log_info("Agent: waiting %s:%u", agent_ip_address, (unsigned)agent_port);
+  display_log("Agent: waiting %s:%u", agent_ip_address, (unsigned)agent_port);
   while (rmw_uros_ping_agent(100, 1) != RMW_RET_OK) {
     M5StackChan.update();
     delay(100);
   }
-  log_info("Agent: connected");
+  display_log("Agent: connected");
 
   // init micro-ROS core
   allocator = rcl_get_default_allocator();
@@ -69,10 +69,10 @@ void setup() {
     if (ENABLE_TOUCH) setup_touch(&node, &support, &executor);
     if (ENABLE_IMU) setup_imu(&node, &support, &executor);
   } else {
-    log_warn("All topics are disabled in config.h");
+    display_log("[WARN] All topics are disabled in config.h");
   }
 
-  log_info("ROS 2 ready! (node: stackchan_node)");
+  display_log("ROS 2 ready! (node: stackchan_node)");
 }
 
 void loop() {
@@ -83,7 +83,7 @@ void loop() {
       // limit to once per second so the screen is not flooded
       static uint32_t last_error_ms = 0;
       if (millis() - last_error_ms > 1000) {
-        log_error("Executor spin failed: %d", (int)ret);
+        display_log("[ERROR] Executor spin failed: %d", (int)ret);
         last_error_ms = millis();
       }
       delay(100);

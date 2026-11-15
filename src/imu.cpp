@@ -46,13 +46,11 @@ static void imu_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_imu(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  log_debug("Registering IMU Node...");
-
   rclc_publisher_init_default(&imu_pub, node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
                               "stackchan/imu");
 
   rclc_timer_init_default(&imu_timer, support, RCL_MS_TO_NS(100), imu_timer_callback);
   rclc_executor_add_timer(executor, &imu_timer);
 
-  log_info("IMU: ready");
+  display_log("IMU: ready");
 }

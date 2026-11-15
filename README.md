@@ -55,8 +55,11 @@ docker run -it --rm --net=host microros/micro-ros-agent:jazzy udp4 --port 8888 -
 5. Press the reset button on your StackChan to restart it.
 
 ### Display Log
-The screen shows logs: boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, battery changes, and warnings/errors (yellow/red).
-The same logs (plus debug logs) are always printed to Serial.
+The screen shows:
+- Line 1 (fixed, updated in place): current joint angles [deg]
+- Line 2 and below (scrolling): boot progress (Wi-Fi, micro-ROS Agent), ready topics, received commands, touch clicks, battery changes, and `[WARN]` / `[ERROR]` messages
+
+The same log lines (except joint angles) are always printed to Serial.
 
 To turn off the screen log, set `ENABLE_DISPLAY_LOG = false` in `config.h`.
 
@@ -203,7 +206,7 @@ linear_acceleration_covariance:
 <img width="340" height="192" alt="stackchan_microros_imu" src="https://github.com/user-attachments/assets/856985cd-acbd-402e-aae8-f8a1eef8115a" />
 
 ## Note
-- You can check all logs, including debug logs, in the Arduino IDE Serial Monitor (115200 baud).
+- You can check the logs in the Arduino IDE Serial Monitor (115200 baud).
 
 ## File Structure
 ```

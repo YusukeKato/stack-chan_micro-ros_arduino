@@ -52,15 +52,13 @@ static camera_config_t camera_config = {
 };
 
 bool init_camera_hardware() {
-  log_debug("Initializing Camera Hardware...");
   camera_config.sccb_i2c_port = M5.In_I2C.getPort();
-  log_debug("Shared I2C Port: %d", camera_config.sccb_i2c_port);
   esp_err_t err = esp_camera_init(&camera_config);
   if (err != ESP_OK) {
-    log_error("Camera: init failed (0x%x)", err);
+    display_log("[ERROR] Camera: init failed (0x%x)", err);
     return false;
   }
-  log_info("Camera: hardware ready");
+  display_log("Camera: hardware ready");
   return true;
 }
 
@@ -88,7 +86,7 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
         // limit to once per second so the screen is not flooded
         static uint32_t last_error_ms = 0;
         if (millis() - last_error_ms > 1000) {
-          log_error("Camera: JPEG conversion failed");
+          display_log("[ERROR] Camera: JPEG conversion failed");
           last_error_ms = millis();
         }
       }
@@ -98,7 +96,6 @@ static void camera_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  log_debug("Registering Camera Node...");
   // init publisher
   rclc_publisher_init_default(&camera_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, CompressedImage),
@@ -109,5 +106,5 @@ void setup_camera(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *ex
   // timer setup
   rclc_timer_init_default(&camera_timer, support, RCL_MS_TO_NS(200), camera_timer_callback);
   rclc_executor_add_timer(executor, &camera_timer);
-  log_info("Camera: ready");
+  display_log("Camera: ready");
 }

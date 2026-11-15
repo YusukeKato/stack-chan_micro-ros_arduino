@@ -3,19 +3,20 @@
 
 // Log output to Serial and (optionally) the StackChan screen.
 //
-// - log_debug: Serial only
-// - log_info / log_warn / log_error: Serial, and the screen when enabled
+// Screen layout:
+//   line 1   : joint angles (fixed, updated in place)
+//   line 2.. : log lines (scroll up when full)
 //
-// The screen shows the latest lines and scrolls up when full.
 // Call only from the Arduino loop task (setup(), loop() and executor callbacks).
 
-// Initialize logging. Call after M5StackChan.begin().
+// Call once after M5StackChan.begin().
 // enable_screen: true = show logs on the screen, false = keep the screen blank.
 void display_log_init(bool enable_screen);
 
-void log_debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void log_info(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void log_warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void log_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+// Print one log line to Serial and the screen. printf-style.
+void display_log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+// Update the fixed joint angle line on the screen (not printed to Serial). [deg]
+void display_joint_angles(float yaw_deg, float pitch_deg);
 
 #endif  // STACKCHAN_DISPLAY_LOG_H

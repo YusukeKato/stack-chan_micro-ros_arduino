@@ -57,7 +57,7 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
       } else if (charge_state == m5::Power_Class::is_discharging) {
         status = "discharging";
       }
-      log_info("Battery: %d%% %.2fV %s", (int)level, battery_msg.voltage, status);
+      display_log("Battery: %d%% %.2fV %s", (int)level, battery_msg.voltage, status);
       last_level = level;
       last_status = battery_msg.power_supply_status;
     }
@@ -65,7 +65,6 @@ static void battery_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
 }
 
 void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  log_debug("Registering Battery Node...");
   // publisher
   rclc_publisher_init_default(&battery_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
@@ -74,5 +73,5 @@ void setup_battery(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *e
   rclc_timer_init_default(&battery_timer, support, RCL_MS_TO_NS(1000), battery_timer_callback);
   rclc_executor_add_timer(executor, &battery_timer);
 
-  log_info("Battery: ready");
+  display_log("Battery: ready");
 }

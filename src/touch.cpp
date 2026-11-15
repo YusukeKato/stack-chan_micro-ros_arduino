@@ -25,14 +25,13 @@ static void touch_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     rcl_publish(&touch_pub, &touch_msg, NULL);
 
     if (M5StackChan.TouchSensor.wasClicked()) {
-      log_info("Touch: clicked (%d, %d, %d)", (int)intensities[0], (int)intensities[1],
-               (int)intensities[2]);
+      display_log("Touch: clicked (%d, %d, %d)", (int)intensities[0], (int)intensities[1],
+                  (int)intensities[2]);
     }
   }
 }
 
 void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  log_debug("Registering Touch Node...");
   rclc_publisher_init_default(&touch_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
                               "stackchan/touch_intensities");
@@ -41,5 +40,5 @@ void setup_touch(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
   touch_msg.data.data = touch_data;
   rclc_timer_init_default(&touch_timer, support, RCL_MS_TO_NS(100), touch_timer_callback);
   rclc_executor_add_timer(executor, &touch_timer);
-  log_info("Touch: ready");
+  display_log("Touch: ready");
 }

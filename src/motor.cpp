@@ -24,12 +24,12 @@ static void angle_subscription_callback(const void *msgin) {
   if (msg->data.size >= 2) {
     int32_t target_yaw = msg->data.data[0];
     int32_t target_pitch = msg->data.data[1];
-    log_info("Motor: cmd yaw %d pitch %d", (int)target_yaw, (int)target_pitch);
+    display_log("Motor: cmd yaw %d pitch %d", (int)target_yaw, (int)target_pitch);
     target_yaw = max(-1280, min(1280, (int)target_yaw));
     target_pitch = max(0, min(900, (int)target_pitch));
     M5StackChan.Motion.move(target_yaw, target_pitch);
   } else {
-    log_warn("Motor: joint_commands needs 2 values, got %u", (unsigned)msg->data.size);
+    display_log("[WARN] Motor: joint_commands needs 2 values, got %u", (unsigned)msg->data.size);
   }
 }
 
@@ -41,11 +41,11 @@ static void motor_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
     pub_msg.data.data[0] = current_yaw;
     pub_msg.data.data[1] = current_pitch;
     rcl_publish(&angle_pub, &pub_msg, NULL);
+    display_joint_angles(current_yaw / 10.0f, current_pitch / 10.0f);  // [0.1 deg] -> [deg]
   }
 }
 
 void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *executor) {
-  log_debug("Registering Motor Node...");
   // publisher
   rclc_publisher_init_default(&angle_pub, node,
                               ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
@@ -66,5 +66,5 @@ void setup_motor(rcl_node_t *node, rclc_support_t *support, rclc_executor_t *exe
   rclc_executor_add_subscription(executor, &angle_sub, &sub_msg, &angle_subscription_callback,
                                  ON_NEW_DATA);
   rclc_executor_add_timer(executor, &motor_timer);
-  log_info("Motor: ready");
+  display_log("Motor: ready");
 }
