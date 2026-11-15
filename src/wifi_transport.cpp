@@ -36,6 +36,8 @@ static size_t transport_read(struct uxrCustomTransport *transport, uint8_t *buf,
     delay(1);
   }
   int read = udp.read(buf, len);
+  // drop the rest of a datagram larger than buf: a leftover makes parsePacket() return 0 forever
+  udp.clear();
   return read > 0 ? (size_t)read : 0;
 }
 
